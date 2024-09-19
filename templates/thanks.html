@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Details</title>
+    <script>
+        window.onload = function () {
+            const userLang = navigator.language || navigator.userLanguage;
+            if (userLang.startsWith('zh')) {
+                document.getElementById('thanks').innerText = '谢谢您选择我们';
+                document.getElementById('info').innerText = '您可以随时离开这个页面. 我们会将翻译好的视频发送到您的邮箱。';
+                document.getElementById('back').innerText = '创建一个新的';
+            } else {
+                document.getElementById('thanks').innerText = 'Thanks for your support!';
+                document.getElementById('info').innerText = 'You can leave this page. We will send the translated video to your email in several minutes!';
+                document.getElementById('back').innerText = 'Create a new one';
+            }
+        };
+    </script>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+<div style="font-size: 1.5rem;" id="thanks">Thanks for your support!</div>
+<div style="font-size: 1.5rem;margin-top: 2rem;" id="info">You can leave this page. We will send the translated video to your email in several minutes!</div>
+<button style="background: #8C6CE3;height: 3rem;border: 0;border-radius: 0.625rem;padding: 0 2rem 0;font-size: 1.5rem;color: #FFFFFF;margin-top: 8rem;"
+        onclick="window.open('/','_self')" id="back">
+    Create a new one
+</button>
+</body>
+</html>

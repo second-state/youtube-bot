@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Details</title>
+    <script>
+        window.onload = function () {
+            const userLang = navigator.language || navigator.userLanguage;
+            if (userLang.startsWith('zh')) {
+                document.getElementById('title').innerText = '把英文转化中文';
+                document.getElementById('skip').innerText = '跳过前';
+                document.getElementById('second').innerText = '秒';
+                document.getElementById('email-placeholder').placeholder = '在这里粘贴你的邮箱';
+                document.getElementById('pay').innerText = '支付0美元（原价2.99美元）';
+            } else {
+                document.getElementById('title').innerText = 'English to Chinese';
+                document.getElementById('skip').innerText = 'Skip the first ';
+                document.getElementById('second').innerText = 'seconds';
+                document.getElementById('email-placeholder').placeholder = 'Paste your email address here.';
+                document.getElementById('pay').innerText = 'Pay $0 (originally $2.99)';
+            }
+        };
+    </script>
+    <style>
+        #runCode {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+<form id="runCode" action="/runCode" method="POST">
+    <div style="display: flex;width: 80%;">
+        <img id="Hf9zfjflP_0" style="width: 50%;border-radius: 1.25rem;"
+             src="https://i.ytimg.com/vi/Hf9zfjflP_0/hqdefault.jpg?sqp=-oaymwEcCNACELwBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLDilWpi3P9e35xnZTDG_paq3AcsBw"/>
+        <div style="display: flex;justify-content: space-between;flex-direction: column;margin-left: 2rem;">
+            <div style="flex: 2;font-size: 2.25rem;">{{ video_name }}</div>
+            <div style="flex: 2;font-size: 1.5rem;" id="title">English to Chinese</div>
+            <div style="flex: 3; display: flex;align-items: end;">
+                <div style="display: flex;align-items: center;font-size: 1.5rem;">
+                    <div id="skip">Skip the first </div>
+                    <input name="second" style="width: 3rem;padding: 0.5rem 0.7rem;font-size: 1.5rem;" min="0" value="1" type="number"/>
+                    <div id="second">seconds</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="position: relative;display: flex;justify-content: space-between;align-items: center;width: 80%;margin-top: 4rem;">
+        <input name="youtube_link" value="{{url}}" style="display: none;"/>
+        <input style="border: 1px solid #8C6CE3;border-radius: 0.625rem;width: 100%;height: 4rem;font-size: 1.5rem;padding-left: 1rem;padding-right: 22.5rem;min-width: 0;"
+               type="text" id="email-placeholder" name="email_link">
+        <button style="background: #8C6CE3;position: absolute;right: 0.5rem;height: 3rem;border: 0;border-radius: 0.625rem;padding: 0 2rem 0;font-size: 1.5rem;color: #FFFFFF;"
+                type="submit" id="pay">
+            Pay $2.99 (for free now)
+        </button>
+    </div>
+</form>
+</body>
+</html>
