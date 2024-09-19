@@ -34,6 +34,7 @@ def upload():
         }
         response = requests.request("GET", url, params=params, headers={'Accept': 'application/json'}, proxies={"http": None, "https": None})
         data = response.json()
+        print(data)
         title = data["items"][0]["snippet"]["title"] + ".mp4"
         thumbnail_url = f'https://img.youtube.com/vi/{match}/sddefault.jpg'
         return redirect(url_for('result', video_name=title, video_thumbnail=thumbnail_url, url=youtube_link))
