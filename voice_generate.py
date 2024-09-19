@@ -66,7 +66,7 @@ def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_sec
         pattern = r'\[(\d{2}:\d{2}:\d{2}\.\d{3}) --> (\d{2}:\d{2}:\d{2}\.\d{3})\]\s*(.*)'
         # 查找匹配的部分
         match = re.match(pattern, paragraph)
-        if match and not match.group(3).startswith(("[", "{")):
+        if match and match.group(3) and not match.group(3).startswith(("[", "{")):
             start_time = match.group(1)
             end_time = match.group(2)
             time_format = "%H:%M:%S.%f"

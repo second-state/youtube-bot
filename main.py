@@ -2,7 +2,7 @@ from media_process import *
 from voice_generate import *
 import subprocess
 
-def main(second, youtube_link, email_link):
+def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", email_link="juyichen0413@gmail.com"):
     video_temp_dir = 'Video_temp'
     video_downloaded_dir = 'Video_downloaded'
     video_generated = 'Video_generated'
