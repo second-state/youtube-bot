@@ -10,13 +10,13 @@
             const userLang = navigator.language || navigator.userLanguage;
             if (userLang.startsWith('zh')) {
                 document.getElementById('title').innerText = '给英文视频加上中文配音';
-                document.getElementById('upload-btn').innerText = '下一步';
+                // document.getElementById('upload-btn').innerText = '下一步';
                 document.getElementById('youtube-placeholder').placeholder = '在这里粘贴 YouTube 链接';
                 document.getElementById('upload-place').innerText = '点击这里上传或拖拽你的文件';
                 document.getElementById('example').innerText = '示例';
             } else {
                 document.getElementById('title').innerText = 'Dub any video in your language';
-                document.getElementById('upload-btn').innerText = 'Next';
+                // document.getElementById('upload-btn').innerText = 'Next';
                 document.getElementById('youtube-placeholder').placeholder = 'Paste the YouTube link here.';
                 document.getElementById('upload-place').innerText = 'Click to browse or Drop here';
                 document.getElementById('example').innerText = 'Examples';
@@ -106,11 +106,11 @@
 <h1 style="color: #FFFAFA;" id="example">Examples</h1>
 
 <div style="width: 100%;display: flex;justify-content: space-around;">
-    <img onclick="clickExample(this)" id="Hf9zfjflP_0" style="width: 25%;border-radius: 1.25rem; cursor: pointer;"
+    <img id="Hf9zfjflP_0" style="width: 25%;border-radius: 1.25rem; cursor: pointer;"
          src="https://i.ytimg.com/vi/Hf9zfjflP_0/hqdefault.jpg?sqp=-oaymwEcCNACELwBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLDilWpi3P9e35xnZTDG_paq3AcsBw"/>
-    <img onclick="clickExample(this)" id="Oa0ZHfcalCM" style="width: 25%;border-radius: 1.25rem; cursor: pointer;"
+    <img id="Oa0ZHfcalCM" style="width: 25%;border-radius: 1.25rem; cursor: pointer;"
          src="https://i.ytimg.com/vi/Oa0ZHfcalCM/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLAfO7qkyPUEyJ19Z6_2wzU-iCCAkw"/>
-    <img onclick="clickExample(this)" id="CpXlvLOyBVI" style="width: 25%;border-radius: 1.25rem; cursor: pointer;"
+    <img id="CpXlvLOyBVI" style="width: 25%;border-radius: 1.25rem; cursor: pointer;"
          src="https://i.ytimg.com/vi/CpXlvLOyBVI/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLCrDNqbgYQoQBrcwuMRG-E5JhATvA"/>
 </div>
 
