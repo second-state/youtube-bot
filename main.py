@@ -1,6 +1,8 @@
-from media_process import *
-from voice_generate import *
+import re
 import subprocess
+
+from voice_generate import *
+
 
 def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", email_link="juyichen0413@gmail.com"):
     video_temp_dir = 'Video_temp'
@@ -12,22 +14,22 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
     # 检查 video_temp_dir 是否存在，如果存在则清空目录，如果不存在则创建目录
     if not os.path.exists(video_temp_dir):
         os.makedirs(video_temp_dir, exist_ok=True)
-    
+
     # 检查 video_downloaded_dir 是否存在，如果存在则清空目录，如果不存在则创建目录
     if not os.path.exists(video_downloaded_dir):
         os.makedirs(video_downloaded_dir, exist_ok=True)
-    
+
     model_id = audio_id_leowang_chinese
 
     # 提示用户输入视频开头的偏移时间（秒），并解释一下这个参数的作用
     offset_seconds = second
 
     # 检查用户输入的是否为数字，如果不是则设置为默认值 3 秒
-    try: offset_seconds = float(offset_seconds)
-    except ValueError: 
+    try:
+        offset_seconds = float(offset_seconds)
+    except ValueError:
         offset_seconds = 3
     offset_seconds = int(offset_seconds)
-
 
     # 判断用户输入的是一个 Https 链接还是一个绝对文件名路径，如果是文件名路径，则将文件直接移动到 video_temp_dir 目录下，如果是 Https 链接，则使用 yt-dlp 下载视频
     if youtube_link.lower().startswith('http'):
@@ -43,11 +45,12 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
             os.path.join(video_temp_dir, '%(title)s.%(ext)s'),
             youtube_link
         ]
-        try: subprocess.run(command, check=True)
+        try:
+            subprocess.run(command, check=True)
         except subprocess.CalledProcessError as e:
             print(f"下载失败：{e}")
             return
-    else: 
+    else:
         # 如果是文件路径，则直接移动到 video_temp_dir 目录下
         if os.path.isfile(youtube_link):
             new_input_file = os.path.join(video_temp_dir, os.path.basename(youtube_link))
@@ -105,6 +108,30 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
             transcript = result["text"]
             print("音频转录文本：")
             print(transcript)
+            print("合并成完整句子：")
+            paragraphs = transcript.split("\n")
+            final_transcript = []
+            last_start = ""
+            temp_sentence = ""
+            for i, paragraph in enumerate(paragraphs):
+                pattern = r'\[(\d{2}:\d{2}:\d{2}\.\d{3}) --> (\d{2}:\d{2}:\d{2}\.\d{3})\]\s*(.*)'
+                match = re.match(pattern, paragraph)
+                if match and match.group(3) and not match.group(3).startswith(("[", "{")):
+                    start_time = match.group(1)
+                    if last_start:
+                        start_time = last_start
+                    end_time = match.group(2)
+                    sentence = match.group(3).strip()
+                    if temp_sentence:
+                        sentence = temp_sentence + " " + sentence
+                    if sentence.endswith("."):
+                        last_start = ""
+                        temp_sentence = ""
+                        final_transcript.append(f"[{start_time} --> {end_time}]  {sentence}")
+                    else:
+                        temp_sentence = temp_sentence + sentence
+                        last_start = start_time
+            transcript = "\n".join(final_transcript)
             # 将 transcript 保存为 txt 文件，文件名为音频文件名 + _en.txt 后缀
             transcript_file = os.path.splitext(dst_audio)[0] + "_en.txt"
             with open(transcript_file, "w") as f:
@@ -120,11 +147,12 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                 f.write(translated_script)
             # 通过 chinese_audio_generation 函数生成中文音频并保存在 Video_downloaded 目录下，dst_audio 的文件名后增加 _cn + .mp3 后缀
             output_file = os.path.splitext(dst_audio)[0] + "_cn.mp3"
-            chinese_audio_batch_generation_and_merge(translated_script, output_file, offset_seconds, dst_video, model_id, api_key=fish_audio_api_key)
+            chinese_audio_batch_generation_and_merge(translated_script, output_file, offset_seconds, dst_video,
+                                                     model_id, api_key=fish_audio_api_key)
             # 判断 output_file 是否存在，如果存在则打印成功信息
             if os.path.isfile(output_file):
                 print(f"中文音频已生成并保存为 {output_file}")
-                try: 
+                try:
                     output_filename = process_video(dst_video, output_file, offset_seconds)
                     print(f"Output file: {output_filename}")
                     # 将 output_filename 移到 video_generated 文件夹下，并打印最新的文件 path，另外将video_downloaded_dir文件夹中剩余的其他文件移到 video_temp_dir
@@ -143,7 +171,7 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                         "mime": "text/plain",
                         "to": email_link,
                         "subject": "您的视频翻译已完成 | Your Video Translation is Complete",
-                        "body": f"尊敬的用户，\n\n感谢您使用我们的视频翻译服务。我们已经完成了您的视频翻译工作，您可以通过以下链接查看翻译后的视频：\n\nhttp://127.0.0.1:5000/videos/{chinese_title}.mp4\n\n如果您有任何疑问或需要进一步的帮助，请随时与我们联系。\n\n再次感谢您的支持，期待为您提供更多优质的服务！\n\n祝好，\n\nSecond State 团队\n\n\nDear User,\n\nThank you for using our video translation service. We have completed the translation of your video, and you can view the translated video via the link below:\n\nhttp://127.0.0.1:5000/videos/{chinese_title}.mp4\n\nIf you have any questions or need further assistance, feel free to contact us.\n\nOnce again, thank you for your support. We look forward to serving you in the future!\n\nBest regards,\n\nSecond State Team"
+                        "body": f"尊敬的用户，\n\n感谢您使用我们的视频翻译服务。我们已经完成了您的视频翻译工作，您可以通过以下链接查看翻译后的视频：\n\nhttp://47.237.130.47:5000/videos/{chinese_title}.mp4\n\n如果您有任何疑问或需要进一步的帮助，请随时与我们联系。\n\n再次感谢您的支持，期待为您提供更多优质的服务！\n\n祝好，\n\nSecond State 团队\n\n\nDear User,\n\nThank you for using our video translation service. We have completed the translation of your video, and you can view the translated video via the link below:\n\nhttp://127.0.0.1:5000/videos/{chinese_title}.mp4\n\nIf you have any questions or need further assistance, feel free to contact us.\n\nOnce again, thank you for your support. We look forward to serving you in the future!\n\nBest regards,\n\nSecond State Team"
                     }
 
                     # 发送 POST 请求，使用 json 参数将字典自动转换为 JSON 格式
@@ -158,8 +186,10 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                     #         target_file = os.path.join(video_temp_dir, f)
                     #         shutil.move(file_path, target_file)
 
-                except: print("视频处理失败。")
-            else: print("中文音频生成失败。")
+                except:
+                    print("视频处理失败。")
+            else:
+                print("中文音频生成失败。")
 
     except Exception as e:
         print("Error，正在清空 Video_temp 目录。")
@@ -171,7 +201,6 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
         #         os.unlink(file_path)
         #     elif os.path.isdir(file_path):
         #         shutil.rmtree(file_path)
-
 
 
 if __name__ == '__main__':
