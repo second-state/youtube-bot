@@ -62,7 +62,7 @@ def get_transcript(audio_file_path):
 
 
 def get_transcript_with_timestamps(audio_file_path):
-    url = 'https://whisper.us.gaianet.network/v1/audio/transcriptions'
+    url = 'http://localhost:8080/v1/audio/transcriptions'
 
     # 打开文件并准备发送请求
     with open(audio_file_path, 'rb') as f:
