@@ -1,9 +1,5 @@
-import shutil
-import requests
 import subprocess
 import os
-from PIL import Image
-from mutagen.mp3 import MP3
 
 def split_audio_from_mp4(input_source_mp4, output_audio_format='mp3'):
     """

@@ -1,0 +1,10 @@
+regex
+subprocess.run
+pytest-shutil
+DateTime
+python-dotenv
+Flask
+requests
+Werkzeug
+threading
+json

@@ -129,7 +129,7 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                         temp_sentence = ""
                         final_transcript.append(f"[{start_time} --> {end_time}]  {sentence}")
                     else:
-                        temp_sentence = temp_sentence + sentence
+                        temp_sentence = sentence
                         last_start = start_time
             transcript = "\n".join(final_transcript)
             # 将 transcript 保存为 txt 文件，文件名为音频文件名 + _en.txt 后缀
