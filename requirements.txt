@@ -1,10 +1,12 @@
+python-dotenv
+flack
+requests
+httpx
+ormsgpack
 regex
 subprocess.run
 pytest-shutil
 DateTime
-python-dotenv
-Flask
-requests
 Werkzeug
 threading
 json
