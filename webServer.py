@@ -91,7 +91,7 @@ def download_file(filename):
 
 @app.route('/temp/<path:filename>'))
 def show_image(filename):
-    return send_from_directory(TEMP_FOLDER, filename, as_attachment=True)
+    return send_from_directory(TEMP_FOLDER, filename)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)
