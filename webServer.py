@@ -87,7 +87,7 @@ TEMP_FOLDER = os.path.join(os.getcwd(), 'temp')
 
 @app.route('/videos/<path:filename>')
 def download_file(filename):
-    return (send_from_directory(VIDEO_FOLDER, filename, as_attachment=True)
+    return send_from_directory(VIDEO_FOLDER, filename, as_attachment=True)
 
 @app.route('/temp/<path:filename>')
 def show_image(filename):
