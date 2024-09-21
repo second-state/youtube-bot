@@ -56,7 +56,7 @@ def upload():
             '-q:v', '2',
             thumbnail_path
         ], check=True)
-        return redirect(url_for('result', video_name=filename, video_thumbnail=thumbnail_path, url=filepath))
+        return redirect(url_for('result', video_name=filename, video_thumbnail=f"/{temp_dir}/temp_{timestamp}.jpg", url=filepath))
 # 结果页面
 @app.route('/result')
 def result():
@@ -83,10 +83,15 @@ def thanks():
     return render_template('thanks.html')
 
 VIDEO_FOLDER = os.path.join(os.getcwd(), 'Video_generated')
+TEMP_FOLDER = os.path.join(os.getcwd(), 'temp')
 
 @app.route('/videos/<path:filename>')
 def download_file(filename):
-    return send_from_directory(VIDEO_FOLDER, filename, as_attachment=True)
+    return (send_from_directory(VIDEO_FOLDER, filename, as_attachment=True)
+
+@app.route('temp/<path:filename>'))
+def show_image(filename):
+    return send_from_directory(TEMP_FOLDER, filename, as_attachment=True)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)
