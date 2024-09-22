@@ -61,6 +61,7 @@ def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_sec
     os.makedirs(temp_dir, exist_ok=True)
     # 生成临时音频文件
     temp_files = []
+    split_list = []
     for i, paragraph in enumerate(paragraphs):
         temp_file = os.path.join(temp_dir, f"temp_{i}.mp3")
         pattern = r'\[(\d{2}:\d{2}:\d{2}\.\d{3}) --> (\d{2}:\d{2}:\d{2}\.\d{3})\]\s*(.*)'
@@ -93,15 +94,20 @@ def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_sec
             original_duration = float(ffprobe_result.stdout.decode('utf-8').strip())
             if original_duration > target_duration:
                 speed_factor = original_duration / target_duration
-                atempo_file = temp_audio_file.rsplit('.', 1)[0] + "_atempo.mp3"
-                subprocess.run([
-                    'ffmpeg', '-y',
-                    '-i', temp_audio_file,
-                    '-filter_complex', f'atempo={speed_factor}',
-                    atempo_file
-                ], check=True)
-                temp_files.append(atempo_file)
-                print(f'[INFO-{i}] create atempo file: {speed_factor}')
+                split_list.append({
+                    "start_time": start_time,
+                    "end_time": end_time,
+                    "speed_factor": speed_factor
+                })
+                # atempo_file = temp_audio_file.rsplit('.', 1)[0] + "_atempo.mp3"
+                # subprocess.run([
+                #     'ffmpeg', '-y',
+                #     '-i', temp_audio_file,
+                #     '-filter_complex', f'atempo={speed_factor}',
+                #     atempo_file
+                # ], check=True)
+                temp_files.append(temp_audio_file)
+                # print(f'[INFO-{i}] create atempo file: {speed_factor}')
             else:
                 temp_files.append(temp_audio_file)
                 silence_time = target_duration - original_duration
@@ -116,7 +122,52 @@ def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_sec
                     ], check=True)
                     temp_files.append(silence_file)
 
-    print(f'list: {temp_files}')
+    temp_videos = []
+    last_end_time = "00:00:00.000"  # 初始时间，从视频开始
+
+    # 遍历所有的片段
+    for i, segment in enumerate(split_list):
+        start_time = segment['start_time']
+        end_time = segment['end_time']
+        speed_factor = segment['speed_factor']
+
+        # 处理不需要改变速度的部分（上一段结束到当前片段开始）
+        if last_end_time < start_time:
+            # 提取中间不需要调整速度的片段
+            temp_filename = f"{temp_dir}/part_no_change_{i}.mp4"
+            temp_videos.append(temp_filename)
+            subprocess.run([
+                "ffmpeg", "-i", dst_video, "-ss", last_end_time, "-to", start_time, "-c", "copy", temp_filename
+            ])
+
+        # 提取需要调整速度的片段
+        temp_filename = f"{temp_dir}/part_slow_{i}.mp4"
+        temp_videos.append(temp_filename)
+        subprocess.run([
+            "ffmpeg", "-i", dst_video, "-ss", start_time, "-to", end_time,
+            "-filter:v", f"setpts={1/speed_factor}*PTS", temp_filename
+        ])
+
+        # 更新 last_end_time 为当前片段的结束时间
+        last_end_time = end_time
+
+    # 处理最后一个片段之后剩余的视频部分
+    final_filename = f"{temp_dir}/final_part.mp4"
+    temp_videos.append(final_filename)
+    subprocess.run([
+        "ffmpeg", "-i", dst_video, "-ss", last_end_time, "-c", "copy", final_filename
+    ])
+
+    # 创建文件列表以合并视频
+    with open(f"{temp_dir}/filelist.txt", "w") as f:
+        for video in temp_videos:
+            f.write(f"file '{os.path.abspath(video)}'\n")
+
+    # 合并所有片段
+    subprocess.run([
+        "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", f"{temp_dir}/filelist.txt", "-c", "copy", dst_video
+    ])
+
     # 合并临时文件
     ffmpeg_command = [
         "ffmpeg",

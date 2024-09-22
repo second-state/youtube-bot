@@ -12,7 +12,7 @@ system_prompt_summarizer = os.getenv("SYSTEM_PROMPT_SUMMARIZER")
 
 def openai_gpt_chat(system_prompt, prompt):
 
-    url = "https://llama.us.gaianet.network/v1/chat/completions"
+    url = "https://qwen72b.us.gaianet.network/v1/chat/completions"
 
     payload = json.dumps({
         "messages": [

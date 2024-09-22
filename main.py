@@ -115,6 +115,7 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
             print("合并成完整句子：")
             paragraphs = transcript.split("\n")
             final_transcript = []
+            # text_list = []
             last_start = ""
             temp_sentence = ""
             for i, paragraph in enumerate(paragraphs):
@@ -126,13 +127,13 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                         start_time = last_start
                     end_time = match.group(2)
                     sentence = match.group(3).strip()
-                    print(f"sentence{sentence}")
                     if temp_sentence:
                         sentence = temp_sentence + " " + sentence
                     if sentence.endswith("."):
                         last_start = ""
                         temp_sentence = ""
                         final_transcript.append(f"[{start_time} --> {end_time}]  {sentence}")
+                        # text_list.append(sentence)
                     else:
                         temp_sentence = sentence
                         last_start = start_time
@@ -143,16 +144,61 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                 f.write(transcript)
             # 通过 openai_gpt_chat 函数获取中文翻译
             print("正在将英文脚本翻译为中文...")
-            translated_script = openai_gpt_chat(system_prompt_script_translator, transcript)
+            translated_text_list = []
+            for i,line in enumerate(final_transcript):
+                pattern = r'\[(\d{2}:\d{2}:\d{2}\.\d{3}) --> (\d{2}:\d{2}:\d{2}\.\d{3})\]\s*(.*)'
+                match = re.match(pattern, line)
+                if match:
+                    start_time = match.group(1)
+                    end_time = match.group(2)
+                    sentence = match.group(3)
+                    text_script = openai_gpt_chat(system_prompt_script_translator, sentence)
+                    translated_text_list.append(f"[{start_time} --> {end_time}]  {text_script}")
+            # original_script = ""
+            # single_script = ""
+            # translated_script_list = []
+            # for i,text in enumerate(text_list):
+            #     temp_text = original_script + "\n" + text
+            #     if len(temp_text) >= 500:
+            #         if not original_script:
+            #             original_script = temp_text
+            #         else:
+            #             single_script = openai_gpt_chat(system_prompt_script_translator, text)
+            #         text_script = openai_gpt_chat(system_prompt_script_translator, original_script)
+            #         original_script = ""
+            #         translated_script_list.append(text_script)
+            #         if single_script:
+            #             translated_script_list.append(single_script)
+            #             single_script = ""
+            #     elif i == len(text_list) - 1:
+            #         text_script = openai_gpt_chat(system_prompt_script_translator, temp_text)
+            #         original_script = ""
+            #         translated_script_list.append(text_script)
+            #     else:
+            #         original_script = temp_text
+            # translated_script = "\n".join(translated_script_list)
+            # print(f"translated_script:{translated_script}")
+            # cn_text_list = translated_script.split("\n")
+            # translated_text_list = []
+            # for i, en_time in enumerate(final_transcript):
+            #     pattern = r'\[(\d{2}:\d{2}:\d{2}\.\d{3}) --> (\d{2}:\d{2}:\d{2}\.\d{3})\]\s*(.*)'
+            #     match = re.match(pattern, en_time)
+            #     if match:
+            #         start_time = match.group(1)
+            #         end_time = match.group(2)
+            #         sentence = match.group(3)
+            #         print(f"{sentence} ==> {cn_text_list[i]}")
+            #         translated_text_list.append(f"[{start_time} --> {end_time}]  {cn_text_list[i]}")
+            translated_text = "\n".join(translated_text_list)
             print("中文翻译文本：")
-            print(translated_script)
+            print(translated_text)
             # 将 translated_script 保存为 txt 文件，文件名为音频文件名 + _cn.txt 后缀
             translated_script_file = os.path.splitext(dst_audio)[0] + "_cn.txt"
             with open(translated_script_file, "w") as f:
-                f.write(translated_script)
+                f.write(translated_text)
             # 通过 chinese_audio_generation 函数生成中文音频并保存在 Video_downloaded 目录下，dst_audio 的文件名后增加 _cn + .mp3 后缀
             output_file = os.path.splitext(dst_audio)[0] + "_cn.mp3"
-            chinese_audio_batch_generation_and_merge(translated_script, output_file, offset_seconds, dst_video,
+            chinese_audio_batch_generation_and_merge(translated_text, output_file, offset_seconds, dst_video,
                                                      model_id, api_key=fish_audio_api_key)
             # 判断 output_file 是否存在，如果存在则打印成功信息
             if os.path.isfile(output_file):
