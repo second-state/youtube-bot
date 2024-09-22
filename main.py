@@ -164,11 +164,11 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                     new_output_file = os.path.join(video_generated, os.path.basename(output_filename))
                     shutil.move(output_filename, new_output_file)
                     # 用 openai_gpt_chat(system_prompt, prompt) 为视频 title 生成中文翻译，prompt 为视频base file name，并用翻译后的中文title 替代原始的 title
-                    # english_title = os.path.splitext(os.path.basename(new_output_file))[0]
+                    final_title = os.path.splitext(os.path.basename(new_output_file))[0]
                     # # chinese_title = openai_gpt_chat(os.getenv("SYSTEM_PROMPT_TITLE_TRANSLATOR"), english_title)
                     # new_output_file_cn = os.path.join(video_generated, english_title + '_cn.mp4')
                     # os.rename(new_output_file, new_output_file_cn)
-                    print(f"Output file: {new_output_file}")
+                    print(f"Output file: {final_title}")
                     url = "https://code.flows.network/webhook/ruvTvWEtUoK0WyZq3w5y/send_email"
 
                     data = {
@@ -176,7 +176,7 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                         "mime": "text/plain",
                         "to": email_link,
                         "subject": "您的视频翻译已完成 | Your Video Translation is Complete",
-                        "body": f"尊敬的用户，\n\n感谢您使用我们的视频翻译服务。我们已经完成了您的视频翻译工作，您可以通过以下链接查看翻译后的视频：\n\n{DOMAIN}/videos/{new_output_file}\n\n如果您有任何疑问或需要进一步的帮助，请随时与我们联系。\n\n再次感谢您的支持，期待为您提供更多优质的服务！\n\n祝好，\n\nSecond State 团队\n\n\nDear User,\n\nThank you for using our video translation service. We have completed the translation of your video, and you can view the translated video via the link below:\n\n{DOMAIN}/videos/{new_output_file}\n\nIf you have any questions or need further assistance, feel free to contact us.\n\nOnce again, thank you for your support. We look forward to serving you in the future!\n\nBest regards,\n\nSecond State Team"
+                        "body": f"尊敬的用户，\n\n感谢您使用我们的视频翻译服务。我们已经完成了您的视频翻译工作，您可以通过以下链接查看翻译后的视频：\n\n{DOMAIN}/videos/{final_title}.mp4\n\n如果您有任何疑问或需要进一步的帮助，请随时与我们联系。\n\n再次感谢您的支持，期待为您提供更多优质的服务！\n\n祝好，\n\nSecond State 团队\n\n\nDear User,\n\nThank you for using our video translation service. We have completed the translation of your video, and you can view the translated video via the link below:\n\n{DOMAIN}/videos/{final_title}.mp4\n\nIf you have any questions or need further assistance, feel free to contact us.\n\nOnce again, thank you for your support. We look forward to serving you in the future!\n\nBest regards,\n\nSecond State Team"
                     }
 
                     # 发送 POST 请求，使用 json 参数将字典自动转换为 JSON 格式
