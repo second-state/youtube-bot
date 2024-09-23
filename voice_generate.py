@@ -107,7 +107,7 @@ def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_sec
                 #     atempo_file
                 # ], check=True)
                 temp_files.append(temp_audio_file)
-                # print(f'[INFO-{i}] create atempo file: {speed_factor}')
+                # print(f'[INFO-{i}] create atempo video: {speed_factor}')
             else:
                 temp_files.append(temp_audio_file)
                 silence_time = target_duration - original_duration
@@ -137,15 +137,20 @@ def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_sec
             temp_filename = f"{temp_dir}/part_no_change_{i}.mp4"
             temp_videos.append(temp_filename)
             subprocess.run([
-                "ffmpeg", "-i", dst_video, "-ss", last_end_time, "-to", start_time, "-c", "copy", temp_filename
+                "ffmpeg", "-i", dst_video, "-ss", last_end_time, "-to", start_time,
+                "-r", "30", "-c:v", "libx264", "-preset", "fast", "-crf", "23",
+                "-reset_timestamps", "1", temp_filename
             ])
 
         # 提取需要调整速度的片段
         temp_filename = f"{temp_dir}/part_slow_{i}.mp4"
         temp_videos.append(temp_filename)
         subprocess.run([
-            "ffmpeg", "-i", dst_video, "-ss", start_time, "-to", end_time,
-            "-filter:v", f"setpts={1/speed_factor}*PTS", temp_filename
+            "ffmpeg", "-ss", start_time, "-to", end_time, "-i", dst_video,  # 移动 -ss 和 -to 到 -i 之前
+            "-filter:v", f"setpts={speed_factor}*PTS",  # 调整速度滤镜
+            "-r", "30",  # 设置帧率在滤镜之后
+            "-c:v", "libx264", "-preset", "fast", "-crf", "23", "-reset_timestamps", "1",
+            temp_filename
         ])
 
         # 更新 last_end_time 为当前片段的结束时间
@@ -155,7 +160,9 @@ def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_sec
     final_filename = f"{temp_dir}/final_part.mp4"
     temp_videos.append(final_filename)
     subprocess.run([
-        "ffmpeg", "-i", dst_video, "-ss", last_end_time, "-c", "copy", final_filename
+        "ffmpeg", "-i", dst_video, "-ss", last_end_time,
+        "-r", "30", "-c:v", "libx264", "-preset", "fast", "-crf", "23",
+        "-reset_timestamps", "1", final_filename
     ])
 
     # 创建文件列表以合并视频
@@ -165,10 +172,12 @@ def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_sec
 
     # 合并所有片段
     subprocess.run([
-        "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", f"{temp_dir}/filelist.txt", "-c", "copy", dst_video
+        "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", f"{temp_dir}/filelist.txt",
+        "-c:v", "libx264", "-preset", "fast", "-crf", "23",
+        "-c:a", "aac", "-ar", "44100", "-ac", "2", "-strict", "experimental", dst_video
     ])
 
-    # 合并临时文件
+# 合并临时文件
     ffmpeg_command = [
         "ffmpeg",
         "-y",
@@ -179,7 +188,7 @@ def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_sec
     try:
         subprocess.run(ffmpeg_command, check=True)
         print(f"Output file: {output_file}")
-        shutil.rmtree(temp_dir)
+        # shutil.rmtree(temp_dir)
         return output_file
     except subprocess.CalledProcessError as e:
         print(f"Error during ffmpeg processing: {e}")
