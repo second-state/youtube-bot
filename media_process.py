@@ -56,7 +56,7 @@ def split_audio_from_mp4(input_source_mp4, output_audio_format='mp3'):
         return None
     
 
-def process_video(mp4_path, mp3_path, offset_seconds=5):
+def process_video(mp4_path, mp3_path, offset_seconds=5, language='zh'):
     import os
     import subprocess
     import sys
@@ -69,7 +69,7 @@ def process_video(mp4_path, mp3_path, offset_seconds=5):
         print(f"Error: mp3 file '{mp3_path}' does not exist.")
         sys.exit(1)
 
-    if os.path.splitext(mp4_path)[0] + "_cn" != os.path.splitext(mp3_path)[0]:
+    if os.path.splitext(mp4_path)[0] + f"_{language}" != os.path.splitext(mp3_path)[0]:
         print(f"Error: mp4 file '{mp4_path}' and mp3 file '{mp3_path}' are not matched.")
         sys.exit(1)
 
@@ -116,7 +116,7 @@ def process_video(mp4_path, mp3_path, offset_seconds=5):
     print(f"Atempo filters: {atempo_filters}")
 
     # Step 6: Build ffmpeg command
-    output_filename = os.path.splitext(mp4_path)[0] + "_cn.mp4"
+    output_filename = os.path.splitext(mp4_path)[0] + f"_{language}.mp4"
     delay_in_ms = int(offset_seconds * 1000)
     filter_complex = (
         f"[0:v]setpts=PTS/{speed_factor}[v];"

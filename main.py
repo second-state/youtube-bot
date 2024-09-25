@@ -199,18 +199,18 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
             print("中文翻译文本：")
             print(translated_text)
             # 将 translated_script 保存为 txt 文件，文件名为音频文件名 + _cn.txt 后缀
-            translated_script_file = os.path.splitext(dst_audio)[0] + "_cn.txt"
+            translated_script_file = os.path.splitext(dst_audio)[0] + f"_{language}.txt"
             with open(translated_script_file, "w") as f:
                 f.write(translated_text)
             # 通过 chinese_audio_generation 函数生成中文音频并保存在 Video_downloaded 目录下，dst_audio 的文件名后增加 _cn + .mp3 后缀
-            output_file = os.path.splitext(dst_audio)[0] + "_cn.mp3"
+            output_file = os.path.splitext(dst_audio)[0] + f"_{language}.mp3"
             chinese_audio_batch_generation_and_merge(translated_text, output_file, offset_seconds, dst_video,
                                                      model_id, api_key=fish_audio_api_key)
             # 判断 output_file 是否存在，如果存在则打印成功信息
             if os.path.isfile(output_file):
                 print(f"中文音频已生成并保存为 {output_file}")
                 try:
-                    output_filename = process_video(dst_video, output_file, offset_seconds)
+                    output_filename = process_video(dst_video, output_file, offset_seconds, language)
                     print(f"Output file: {output_filename}")
                     # 将 output_filename 移到 video_generated 文件夹下，并打印最新的文件 path，另外将video_downloaded_dir文件夹中剩余的其他文件移到 video_temp_dir
                     new_output_file = os.path.join(video_generated, os.path.basename(output_filename))
