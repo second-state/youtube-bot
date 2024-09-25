@@ -19,7 +19,8 @@ audio_id_danli_chinese = os.getenv("FISH_AUDIO_ID_DANLI_CHINESE")
 
 def chinese_audio_generation(input_text, output_file, model_id=audio_id_leowang_chinese, api_key=fish_audio_api_key):
     print(f"Generating audio...")
-    input_text = re.sub(r'[^，？。]', ' ', input_text)
+    input_text = re.sub(r'[^，。a-zA-Z0-9\u4e00-\u9fa5]', ' ', input_text)
+    print(input_text)
     url = "https://api.fish.audio/v1/tts"
     request = {
         "text": input_text,
