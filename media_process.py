@@ -1,5 +1,6 @@
 import subprocess
 import os
+from datetime import datetime
 
 def split_audio_from_mp4(input_source_mp4, output_audio_format='mp3'):
     """
@@ -116,7 +117,8 @@ def process_video(mp4_path, mp3_path, offset_seconds=5, language='zh'):
     print(f"Atempo filters: {atempo_filters}")
 
     # Step 6: Build ffmpeg command
-    output_filename = os.path.splitext(mp4_path)[0] + f"_{language}.mp4"
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    output_filename = os.path.splitext(mp4_path)[0] + timestamp + f"_{language}.mp4"
     delay_in_ms = int(offset_seconds * 1000)
     filter_complex = (
         f"[0:v]setpts=PTS/{speed_factor}[v];"

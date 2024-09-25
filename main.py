@@ -158,6 +158,7 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                         system_prompt_script_translator = system_prompt_script_translator_japanese
                     else:
                         system_prompt_script_translator = system_prompt_script_translator_chinese
+                    print(system_prompt_script_translator)
                     text_script = openai_gpt_chat(system_prompt_script_translator, sentence)
                     translated_text_list.append(f"[{start_time} --> {end_time}]  {text_script}")
             # original_script = ""
@@ -223,12 +224,16 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                     print(f"Output file: {final_title}")
                     url = "https://code.flows.network/webhook/ruvTvWEtUoK0WyZq3w5y/send_email"
 
+                    if language == "ja":
+                        trans_message = f"親愛なるユーザーの皆様，\n\n弊社の動画翻訳サービスをご利用いただき誠にありがとうございます。ビデオの翻訳が完了しました。翻訳されたビデオは以下のリンクからご覧いただけます：\n\n{DOMAIN}/videos/{final_title}.mp4\n\nご質問がある場合、またはさらにサポートが必要な場合は、お気軽にお問い合わせください。\n\nご支援に改めて感謝し、より質の高いサービスを提供できることを楽しみにしています！\n\n幸運を祈ります，\n\nSecond State チーム"
+                    else:
+                        trans_message = f"尊敬的用户，\n\n感谢您使用我们的视频翻译服务。我们已经完成了您的视频翻译工作，您可以通过以下链接查看翻译后的视频：\n\n{DOMAIN}/videos/{final_title}.mp4\n\n如果您有任何疑问或需要进一步的帮助，请随时与我们联系。\n\n再次感谢您的支持，期待为您提供更多优质的服务！\n\n祝好，\n\nSecond State 团队"
                     data = {
                         "code": "1234",
                         "mime": "text/plain",
                         "to": email_link,
                         "subject": "您的视频翻译已完成 | Your Video Translation is Complete",
-                        "body": f"尊敬的用户，\n\n感谢您使用我们的视频翻译服务。我们已经完成了您的视频翻译工作，您可以通过以下链接查看翻译后的视频：\n\n{DOMAIN}/videos/{final_title}.mp4\n\n如果您有任何疑问或需要进一步的帮助，请随时与我们联系。\n\n再次感谢您的支持，期待为您提供更多优质的服务！\n\n祝好，\n\nSecond State 团队\n\n\nDear User,\n\nThank you for using our video translation service. We have completed the translation of your video, and you can view the translated video via the link below:\n\n{DOMAIN}/videos/{final_title}.mp4\n\nIf you have any questions or need further assistance, feel free to contact us.\n\nOnce again, thank you for your support. We look forward to serving you in the future!\n\nBest regards,\n\nSecond State Team"
+                        "body": f"{trans_message}\n\n\nDear User,\n\nThank you for using our video translation service. We have completed the translation of your video, and you can view the translated video via the link below:\n\n{DOMAIN}/videos/{final_title}.mp4\n\nIf you have any questions or need further assistance, feel free to contact us.\n\nOnce again, thank you for your support. We look forward to serving you in the future!\n\nBest regards,\n\nSecond State Team"
                     }
 
                     # 发送 POST 请求，使用 json 参数将字典自动转换为 JSON 格式
