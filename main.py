@@ -158,7 +158,6 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                         system_prompt_script_translator = system_prompt_script_translator_japanese
                     else:
                         system_prompt_script_translator = system_prompt_script_translator_chinese
-                    print(system_prompt_script_translator)
                     text_script = openai_gpt_chat(system_prompt_script_translator, sentence)
                     translated_text_list.append(f"[{start_time} --> {end_time}]  {text_script}")
             # original_script = ""
