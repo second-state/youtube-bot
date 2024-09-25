@@ -73,13 +73,9 @@ def run_code():
     sound_id = request.form.get('soundId')
     language = request.form.get('language')
 
-
-    print(email_link)
-    print(sound_id)
-    print(language)
     # 将数据传递给 main 方法
-    # thread = threading.Thread(target=main, args=(second, youtube_link, email_link, sound_id, language))
-    # thread.start()
+    thread = threading.Thread(target=main, args=(second, youtube_link, email_link, sound_id, language))
+    thread.start()
 
     # 跳转到 thanks 页面
     return redirect(url_for('thanks'))
