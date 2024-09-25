@@ -19,7 +19,8 @@
                 document.getElementById('skip').innerText = '跳过前';
                 document.getElementById('second').innerText = '秒';
                 document.getElementById('email-placeholder').placeholder = '在这里粘贴你的邮箱';
-                document.getElementById('pay').innerText = '支付0美元（原价2.99美元）';
+                document.getElementById('pc-pay').innerText = '支付0美元（原价2.99美元）';
+                document.getElementById('mobile-pay').innerText = '支付0美元（原价2.99美元）';
                 document.getElementById('inputBox').value = (checkLanguage ? '默认男声（日文）' : '默认男声（中文）');
                 document.getElementById('soundId').value = (checkLanguage ? '3a3897e45c58491bb9b57b3213757337' : '59cb5986671546eaa6ca8ae6f29f6d22');
                 document.getElementById('chineseMan').innerText = '默认男声（中文）';
@@ -32,7 +33,8 @@
                 document.getElementById('skip').innerText = '最初をスキップ ';
                 document.getElementById('second').innerText = '秒';
                 document.getElementById('email-placeholder').placeholder = 'ここにメールアドレスを貼り付けてください';
-                document.getElementById('pay').innerText = '支払い $0 (当初は $2.99)';
+                document.getElementById('pc-pay').innerText = '支払い $0 (当初は $2.99)';
+                document.getElementById('mobile-pay').innerText = '支払い $0 (当初は $2.99)';
                 document.getElementById('chineseMan').innerText = '支付0美元（原价2.99美元）';
                 document.getElementById('chineseWoman').innerText = '支付0美元（原价2.99美元）';
                 document.getElementById('japaneseMan').innerText = '支付0美元（原价2.99美元）';
@@ -49,7 +51,8 @@
                 document.getElementById('skip').innerText = 'Skip the first ';
                 document.getElementById('second').innerText = 'seconds';
                 document.getElementById('email-placeholder').placeholder = 'Paste your email address here.';
-                document.getElementById('pay').innerText = 'Pay $0 (originally $2.99)';
+                document.getElementById('pc-pay').innerText = 'Pay $0 (originally $2.99)';
+                document.getElementById('mobile-pay').innerText = 'Pay $0 (originally $2.99)';
                 document.getElementById('chineseMan').innerText = '支付0美元（原价2.99美元）';
                 document.getElementById('chineseWoman').innerText = '支付0美元（原价2.99美元）';
                 document.getElementById('japaneseMan').innerText = '支付0美元（原价2.99美元）';
@@ -109,21 +112,77 @@
         .dropdown li:hover {
             background: #f0f0f0;
         }
+
+        .result-body {
+            display: flex;
+        }
+
+        .result-img {
+            width: 50%;
+        }
+
+        .result-date {
+            margin-left: 2rem;
+        }
+
+        .pc-submit {
+            display: block;
+        }
+
+        .mobile-submit {
+            display: none;
+        }
+
+        .result-input {
+            padding-right: 22.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .result-body {
+                flex-direction: column;
+            }
+
+            .result-img {
+                width: 100%;
+            }
+
+            .result-date {
+                margin-top: 1rem;
+                margin-left: 0;
+            }
+
+            .result-select {
+                margin-top: 1rem;
+            }
+
+            .pc-submit {
+                display: none;
+            }
+
+            .mobile-submit {
+                display: block;
+            }
+
+            .result-input {
+                padding-right: 1rem;
+                margin-bottom: 0.7rem;
+            }
+        }
     </style>
 </head>
 <body>
 <form id="runCode" action="/runCode" method="POST">
-    <div style="display: flex;width: 80%;">
-        <img style="width: 50%;border-radius: 1.25rem;"
+    <div class="result-body" style="width: 80%;">
+        <img class="result-img" style="border-radius: 1.25rem;"
              src="{{ video_thumbnail }}"/>
-        <div style="display: flex;justify-content: space-between;flex-direction: column;margin-left: 2rem;">
+        <div class="result-date" style="display: flex;justify-content: space-between;flex-direction: column;">
             <div style="flex: 2;font-size: 2.25rem;word-break: break-all;">{{ video_name }}</div>
             <div style="flex: 2;font-size: 1.5rem;display: flex;align-items: center;">
                 <div id="title">English to</div>
                 <img onclick="changeLanguage()" style="cursor: pointer;width: 1.5rem;margin-left: 0.5rem;"
                      src="/icon/change.svg"/>
             </div>
-            <div style="flex: 3; display: flex;align-items: end;">
+            <div class="result-select" style="flex: 3; display: flex;align-items: end;">
                 <div style="width: 100%;">
                     <div style="display: flex;align-items: center;margin-bottom: 1rem;">
                         <div style="font-size: 1.5rem;" id="soundTitle">Sound ID:</div>
@@ -165,13 +224,17 @@
 
     <div style="position: relative;display: flex;justify-content: space-between;align-items: center;width: 80%;margin-top: 4rem;">
         <input name="youtube_link" value="{{url}}" style="display: none;"/>
-        <input style="border: 1px solid #8C6CE3;border-radius: 0.625rem;width: 100%;height: 4rem;font-size: 1.5rem;padding-left: 1rem;padding-right: 22.5rem;min-width: 0;"
+        <input class="result-input" style="border: 1px solid #8C6CE3;border-radius: 0.625rem;width: 100%;height: 4rem;font-size: 1.5rem;padding-left: 1rem;min-width: 0;"
                type="text" id="email-placeholder" name="email_link">
-        <button style="background: #8C6CE3;position: absolute;right: 0.5rem;height: 3rem;border: 0;border-radius: 0.625rem;padding: 0 2rem 0;font-size: 1.5rem;color: #FFFFFF;"
-                type="submit" id="pay">
+        <button class="pc-submit" style="background: #8C6CE3;position: absolute;right: 0.5rem;height: 3rem;border: 0;border-radius: 0.625rem;padding: 0 2rem 0;font-size: 1.5rem;color: #FFFFFF;"
+                type="submit" id="pc-pay">
             Pay $2.99 (for free now)
         </button>
     </div>
+    <button class="mobile-submit" style="background: #8C6CE3;height: 3rem;border: 0;border-radius: 0.625rem;width: 80%;font-size: 1.5rem;color: #FFFFFF;"
+            type="submit" id="mobile-pay">
+        Pay $2.99 (for free now)
+    </button>
 </form>
 </body>
 <script>
@@ -181,7 +244,8 @@
     const inputBox = document.getElementById('inputBox');
     const soundIdInput = document.getElementById('soundId');
     const languageInput = document.getElementById('language');
-    const payButton = document.getElementById('pay');
+    const pcPayButton = document.getElementById('pc-pay');
+    const mobilePayButton = document.getElementById('mobile-pay');
 
     languageInput.value = trans_language;
 
@@ -255,13 +319,19 @@
             check = false;
         }
         if (check) {
-            payButton.style.cursor = "pointer";
-            payButton.style.background = "#8C6CE3";
-            payButton.disabled = false;
+            pcPayButton.style.cursor = "pointer";
+            pcPayButton.style.background = "#8C6CE3";
+            pcPayButton.disabled = false;
+            mobilePayButton.style.cursor = "pointer";
+            mobilePayButton.style.background = "#8C6CE3";
+            mobilePayButton.disabled = false;
         } else {
-            payButton.style.cursor = "not-allowed";
-            payButton.style.background = "#a1a1a1";
-            payButton.disabled = true;
+            pcPayButton.style.cursor = "not-allowed";
+            pcPayButton.style.background = "#a1a1a1";
+            pcPayButton.disabled = true;
+            mobilePayButton.style.cursor = "not-allowed";
+            mobilePayButton.style.background = "#a1a1a1";
+            mobilePayButton.disabled = true;
         }
     }
 
