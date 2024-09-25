@@ -50,6 +50,39 @@ def chinese_audio_generation(input_text, output_file, model_id=audio_id_leowang_
                 f.write(chunk)
     return output_file
 
+# def test_audio_generation(model_id, api_key=fish_audio_api_key):
+#     print(f"Generating audio...")
+#     url = "https://api.fish.audio/v1/tts"
+#     request = {
+#         "text": "hi",
+#         "reference_id": model_id,
+#         "chunk_length": 200,
+#         "normalize": False,
+#         "format": "mp3",
+#         "mp3_bitrate": 64,
+#         "opus_bitrate": -1000,
+#         "latency": "normal"
+#     }
+#     headers = {
+#         "Authorization": f"Bearer {api_key}",
+#         "Content-Type": "application/msgpack"
+#     }
+#
+#     with (
+#         httpx.Client() as client,
+#         open(output_file, "wb") as f,
+#     ):
+#         with client.stream(
+#                 "POST",
+#                 url,
+#                 content=ormsgpack.packb(request, option=ormsgpack.OPT_SERIALIZE_PYDANTIC),
+#                 headers=headers,
+#                 timeout=None,
+#         ) as response:
+#             for chunk in response.iter_bytes():
+#                 f.write(chunk)
+#     return output_file
+
 
 # 基于 chinese_audio_generation 函数，实现一个功能，将 input_text 输入的中文根据句号 。 进行切割，每十个句号为一个段落，然后生成临时的音频文件，生成一个临时文件夹 temp 子目录，放在子目录中，最后用 ffmpeg 将所有文件按顺序合并为一个大文件：output_file，合并成功后删除 temp 临时文件夹及包含的所有临时文件，并 return output_file
 def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_seconds, dst_video, model_id=audio_id_leowang_chinese,

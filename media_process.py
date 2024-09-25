@@ -27,6 +27,7 @@ def split_audio_from_mp4(input_source_mp4, output_audio_format='mp3'):
             '-acodec', 'libmp3lame',  # 使用 MP3 编码器
             '-q:a', '2',  # 设置音频质量，0-9，数值越低质量越好
             '-ar', '16000',  # 设置采样率
+            '-af', 'aresample=16000',
             '-ac', '1',  # 设置声道数
             output_audio_file
         ]
@@ -37,6 +38,7 @@ def split_audio_from_mp4(input_source_mp4, output_audio_format='mp3'):
             '-vn',
             '-acodec', 'pcm_s16le',  # 使用 PCM 编码器
             '-ar', '16000',  # 设置采样率
+            '-af', 'aresample=16000',
             '-ac', '1',  # 设置声道数
             output_audio_file
         ]

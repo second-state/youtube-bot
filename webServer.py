@@ -70,10 +70,16 @@ def run_code():
     second = request.form.get('second')
     youtube_link = request.form.get('youtube_link')
     email_link = request.form.get('email_link')
+    sound_id = request.form.get('soundId')
+    language = request.form.get('language')
 
+
+    print(email_link)
+    print(sound_id)
+    print(language)
     # 将数据传递给 main 方法
-    thread = threading.Thread(target=main, args=(second, youtube_link, email_link))
-    thread.start()
+    # thread = threading.Thread(target=main, args=(second, youtube_link, email_link, sound_id, language))
+    # thread.start()
 
     # 跳转到 thanks 页面
     return redirect(url_for('thanks'))
@@ -84,14 +90,19 @@ def thanks():
 
 VIDEO_FOLDER = os.path.join(os.getcwd(), 'Video_generated')
 TEMP_FOLDER = os.path.join(os.getcwd(), 'temp')
+ICON_FOLDER = os.path.join(os.getcwd(), 'icon')
 
 @app.route('/videos/<path:filename>')
 def download_file(filename):
-    return send_from_directory(VIDEO_FOLDER, filename, as_attachment=True)
+    return send_from_directory(VIDEO_FOLDER, filename)
 
 @app.route('/temp/<path:filename>')
 def show_image(filename):
     return send_from_directory(TEMP_FOLDER, filename)
+
+@app.route('/icon/<path:filename>')
+def show_icon(filename):
+    return send_from_directory(ICON_FOLDER, filename)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)

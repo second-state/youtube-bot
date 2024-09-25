@@ -11,6 +11,10 @@
                 document.getElementById('thanks').innerText = '谢谢您选择我们';
                 document.getElementById('info').innerText = '您可以随时离开这个页面. 我们会将翻译好的视频发送到您的邮箱。';
                 document.getElementById('back').innerText = '创建一个新的';
+            } else if (userLang.startsWith('ja')) {
+                document.getElementById('thanks').innerText = '私たちをお選びいただきありがとうございます';
+                document.getElementById('info').innerText = 'いつでもこのページから離れていただけます。翻訳されたビデオをメールに送信します。';
+                document.getElementById('back').innerText = '新しいものを作成する';
             } else {
                 document.getElementById('thanks').innerText = 'Thanks for your support!';
                 document.getElementById('info').innerText = 'You can leave this page. We will send the translated video to your email in several minutes!';

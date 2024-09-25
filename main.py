@@ -8,7 +8,9 @@ load_dotenv()
 
 DOMAIN = os.getenv("DOMAIN")
 
-def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", email_link="juyichen0413@gmail.com"):
+
+def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", email_link="juyichen0413@gmail.com",
+         sound_id="59cb5986671546eaa6ca8ae6f29f6d22", language="zh"):
     video_temp_dir = 'Video_temp'
     video_downloaded_dir = 'Video_downloaded'
     video_generated = 'Video_generated'
@@ -23,7 +25,7 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
     if not os.path.exists(video_downloaded_dir):
         os.makedirs(video_downloaded_dir, exist_ok=True)
 
-    model_id = audio_id_leowang_chinese
+    model_id = sound_id
 
     # 提示用户输入视频开头的偏移时间（秒），并解释一下这个参数的作用
     offset_seconds = second
@@ -145,13 +147,17 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
             # 通过 openai_gpt_chat 函数获取中文翻译
             print("正在将英文脚本翻译为中文...")
             translated_text_list = []
-            for i,line in enumerate(final_transcript):
+            for i, line in enumerate(final_transcript):
                 pattern = r'\[(\d{2}:\d{2}:\d{2}\.\d{3}) --> (\d{2}:\d{2}:\d{2}\.\d{3})\]\s*(.*)'
                 match = re.match(pattern, line)
                 if match:
                     start_time = match.group(1)
                     end_time = match.group(2)
                     sentence = match.group(3)
+                    if language == 'ja':
+                        system_prompt_script_translator = system_prompt_script_translator_japanese
+                    else:
+                        system_prompt_script_translator = system_prompt_script_translator_chinese
                     text_script = openai_gpt_chat(system_prompt_script_translator, sentence)
                     translated_text_list.append(f"[{start_time} --> {end_time}]  {text_script}")
             # original_script = ""
