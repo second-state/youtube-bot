@@ -42,7 +42,7 @@ def format_subtitles_with_timestamps(transcript):
                     item = item.strip()
                     if idx+1 != len(split_text_list):
                         this_text_length = len(item)
-                        value_to_add = time_difference * this_text_length / total_text_length
+                        value_to_add = time_difference.total_seconds() * this_text_length / total_text_length
                         new_timestamps = start_timestamps + timedelta(seconds=value_to_add)
                         new_end_time = new_timestamps.strftime(time_format)
                         final_transcript.append(f"[{start_time} --> {new_end_time}]  {item}")
