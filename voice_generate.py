@@ -19,8 +19,6 @@ audio_id_danli_chinese = os.getenv("FISH_AUDIO_ID_DANLI_CHINESE")
 
 def chinese_audio_generation(input_text, output_file, model_id=audio_id_leowang_chinese, api_key=fish_audio_api_key):
     print(f"Generating audio...")
-    input_text = re.sub(r'[^，。a-zA-Z0-9\u4e00-\u9fa5]', ' ', input_text)
-    print(input_text)
     url = "https://api.fish.audio/v1/tts"
     request = {
         "text": input_text,
@@ -134,15 +132,7 @@ def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_sec
                     "end_time": end_time,
                     "speed_factor": speed_factor
                 })
-                # atempo_file = temp_audio_file.rsplit('.', 1)[0] + "_atempo.mp3"
-                # subprocess.run([
-                #     'ffmpeg', '-y',
-                #     '-i', temp_audio_file,
-                #     '-filter_complex', f'atempo={speed_factor}',
-                #     atempo_file
-                # ], check=True)
                 temp_files.append(temp_audio_file)
-                # print(f'[INFO-{i}] create atempo video: {speed_factor}')
             else:
                 temp_files.append(temp_audio_file)
                 silence_time = target_duration - original_duration
@@ -182,7 +172,8 @@ def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_sec
         temp_videos.append(temp_filename)
         subprocess.run([
             "ffmpeg", "-ss", start_time, "-to", end_time, "-i", dst_video,  # 移动 -ss 和 -to 到 -i 之前
-            "-filter:v", f"setpts={speed_factor}*PTS",  # 调整速度滤镜
+            "-filter:v", f"setpts={speed_factor}*PTS",  # 调整视频速度滤镜
+            "-filter:a", f"atempo={1/speed_factor}",  # 调整音频速度滤镜
             "-r", "30",  # 设置帧率在滤镜之后
             "-c:v", "libx264", "-preset", "fast", "-crf", "23", "-reset_timestamps", "1",
             temp_filename
@@ -224,7 +215,7 @@ def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_sec
         subprocess.run(ffmpeg_command, check=True)
         print(f"Output file: {output_file}")
         # shutil.rmtree(temp_dir)
-        return output_file
+        return temp_dir
     except subprocess.CalledProcessError as e:
         print(f"Error during ffmpeg processing: {e}")
 

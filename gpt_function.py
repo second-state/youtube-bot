@@ -12,7 +12,6 @@ system_prompt_summarizer = os.getenv("SYSTEM_PROMPT_SUMMARIZER")
 
 
 def openai_gpt_chat(system_prompt, prompt):
-
     url = "https://qwen72b.us.gaianet.network/v1/chat/completions"
 
     payload = json.dumps({
@@ -99,11 +98,11 @@ def group_words_into_sentences(transcript, max_words=10, max_silence=1.0):
     return sentences
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
     # 测试 openai_gpt_chat
-    transcript_file_path = 'transcript_sample.json'
-    transcript = load_transcript(transcript_file_path)
-    sentences = group_words_into_sentences(transcript)
-    # save sentences as json file
-    with open('sentences_sample.json', 'w') as f:
-        json.dump(sentences, f)
+    # transcript_file_path = 'transcript_sample.json'
+    # transcript = load_transcript(transcript_file_path)
+    # sentences = group_words_into_sentences(transcript)
+    # # save sentences as json file
+    # with open('sentences_sample.json', 'w') as f:
+    #     json.dump(sentences, f)

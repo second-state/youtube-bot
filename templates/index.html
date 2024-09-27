@@ -28,39 +28,6 @@
                 document.getElementById('example').innerText = 'Examples';
             }
         };
-
-        // 实现文件拖拽上传
-        function handleFileSelect(event) {
-            event.preventDefault();
-            document.getElementById('drop-area').style.borderColor = '#FFFAFAE5';
-            document.getElementById('file-input').files = event.dataTransfer.files;  // 设置文件到隐藏的输入框
-            document.getElementById('upload-form').submit();
-        }
-
-        function preventDefaults(event) {
-            document.getElementById('drop-area').style.borderColor = 'green';
-            event.preventDefault();
-            event.stopPropagation();
-        }
-
-        function leave(event) {
-            document.getElementById('drop-area').style.borderColor = '#FFFAFAE5';
-            event.preventDefault();
-            event.stopPropagation();
-        }
-
-        function clickDrop() {
-            document.getElementById('file-input').click();
-        }
-
-        function clickExample(element) {
-            document.getElementById('youtube-placeholder').value = "https://www.youtube.com/watch?v=" + element.id;
-            document.getElementById('upload-form').submit();
-        }
-
-        function upload() {
-            document.getElementById('upload-form').submit()
-        }
     </script>
 
     <style>
@@ -76,6 +43,19 @@
 
         input::placeholder {
             color: #FFFFFF;
+        }
+
+        #progress-bar {
+            width: 100%;
+            border-radius: 1.2rem;
+            background-color: #f3f3f3;
+            border: 0.2rem solid #ccc;
+        }
+        #progress {
+            width: 20%;
+            height: 2rem;
+            border-radius: 1.2rem;
+            background-color: #4caf50;
         }
     </style>
 </head>
@@ -100,15 +80,20 @@
 <!--    <br><br>-->
 
     <!-- 文件上传按钮 -->
-    <input onchange="upload()" type="file" id="file-input" name="file" style="display: none;">
+    <input onchange="handleSubmit()" type="file" id="file-input" name="file" accept="video/*" style="display: none;">
 
     <div id="drop-area" ondrop="handleFileSelect(event)" ondragover="preventDefaults(event)" ondragleave="leave(event)" onclick="clickDrop()"
-         style="cursor: pointer; width: 100%; height: 200px; font-size: 1.5rem;color: #FFFFFF; background: #E8E6E61A; border: 1px dashed #FFFAFAE5; display: flex;justify-content: center;align-items: center; text-align: center;">
+         style="cursor: pointer; width: 100%; height: 200px; font-size: 1.5rem;color: #FFFFFF; background: #E8E6E61A; border: 1px dashed #FFFAFAE5; display: flex;flex-direction: column;justify-content: center;align-items: center; text-align: center;">
         <div id="upload-place" style="height: min-content;">Click to browse or Drop here</div>
+        <div style="display: flex;align-items: center;justify-content:center;width: 90%;margin-top: 1rem;">
+            <div style="display: none;" id="progress-bar">
+                <div id="progress"></div>
+            </div>
+            <div style="margin-left: 1rem;" id="status"></div>
+        </div>
     </div>
     <br>
 </form>
-
 <h1 style="color: #FFFAFA;" id="example">Examples</h1>
 
 <div style="width: 100%;display: flex;justify-content: space-around;">
@@ -119,6 +104,101 @@
     <img id="CpXlvLOyBVI" style="width: 25%;border-radius: 1.25rem; cursor: pointer;"
          src="https://i.ytimg.com/vi/CpXlvLOyBVI/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLCrDNqbgYQoQBrcwuMRG-E5JhATvA"/>
 </div>
-
 </body>
+<script>
+
+    function handleSubmit() {
+        const fileInput = document.getElementById('file-input');
+        const file = fileInput.files[0];
+        console.log(file.name)
+
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+        const userLang = navigator.language || navigator.userLanguage;
+        if (userLang.startsWith('zh')) {
+            document.getElementById('upload-place').innerText = `正在上传 ${file.name}`;
+
+        }else if(userLang.startsWith('ja')) {
+            document.getElementById('upload-place').innerText = `${file.name} をアップロードしています`;
+
+        }else {
+            document.getElementById('upload-place').innerText = `Uploaded ${file.name}`;
+
+        }
+
+        const xhr = new XMLHttpRequest();
+
+        // 监听上传进度
+        xhr.upload.onprogress = function (event) {
+            if (event.lengthComputable) {
+                const percentComplete = (event.loaded / event.total) * 100;
+                document.getElementById('progress').style.width = percentComplete + '%';
+                document.getElementById('progress-bar').style.display = 'block';
+                document.getElementById('status').textContent = `${Math.round(percentComplete)}%`;
+            }
+        };
+
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                const response = JSON.parse(xhr.responseText);
+                const videoName = encodeURIComponent(response.video_name);
+                const videoThumbnail = encodeURIComponent(response.video_thumbnail);
+                const url = encodeURIComponent(response.url);
+                const redirectUrl = `http://127.0.0.1:5000/result?video_name=${videoName}&video_thumbnail=${videoThumbnail}&url=${url}`;
+                window.location.href = redirectUrl;
+            } else {
+                document.getElementById('progress').style.width = '100%';
+                document.getElementById('progress').style.backgroundColor = '#d73232';
+                document.getElementById('status').textContent = 'error';
+                document.getElementById('upload-place').textContent = 'Upload failed, please upload again!';
+            }
+        };
+
+        xhr.onerror = function () {
+            document.getElementById('progress').style.width = '100%';
+            document.getElementById('progress').style.backgroundColor = '#d73232';
+            document.getElementById('status').textContent = 'error';
+            document.getElementById('upload-place').textContent = 'Network error occurred, please upload again!';
+        };
+
+        xhr.open('POST', '/upload', true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.send(formData);
+    }
+
+    // 实现文件拖拽上传
+    function handleFileSelect(event) {
+        event.preventDefault();
+        document.getElementById('drop-area').style.borderColor = '#FFFAFAE5';
+        document.getElementById('file-input').files = event.dataTransfer.files;  // 设置文件到隐藏的输入框
+        handleSubmit();
+    }
+
+    function preventDefaults(event) {
+        document.getElementById('drop-area').style.borderColor = 'green';
+        event.preventDefault();
+        event.stopPropagation();
+    }
+
+    function leave(event) {
+        document.getElementById('drop-area').style.borderColor = '#FFFAFAE5';
+        event.preventDefault();
+        event.stopPropagation();
+    }
+
+    function clickDrop() {
+        document.getElementById('file-input').click();
+    }
+
+    function clickExample(element) {
+        document.getElementById('youtube-placeholder').value = "https://www.youtube.com/watch?v=" + element.id;
+        handleSubmit()
+    }
+
+    function upload() {
+        handleSubmit()
+    }
+</script>
 </html>

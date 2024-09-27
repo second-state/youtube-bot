@@ -1,23 +1,25 @@
-from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 import os
 import re
 import requests
-from werkzeug.utils import secure_filename
 import subprocess
-import time
-from main import main
 import threading
+import time
+from flask import Flask, render_template, jsonify, request, redirect, url_for, send_from_directory
+from werkzeug.utils import secure_filename
 
+from main import main
 
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 YOUTUBE_V3_KEY = os.getenv("YOUTUBE_V3_KEY")
 
+
 # 首页，选择语言并展示上传页面
 @app.route('/')
 def index():
     return render_template('index.html')
+
 
 # 处理上传或者YouTube链接
 @app.route('/upload', methods=['POST'])
@@ -32,7 +34,8 @@ def upload():
             'id': match,
             'key': YOUTUBE_V3_KEY
         }
-        response = requests.request("GET", url, params=params, headers={'Accept': 'application/json'}, proxies={"http": None, "https": None})
+        response = requests.request("GET", url, params=params, headers={'Accept': 'application/json'},
+                                    proxies={"http": None, "https": None})
         data = response.json()
         print(data)
         title = data["items"][0]["snippet"]["title"] + ".mp4"
@@ -56,7 +59,8 @@ def upload():
             '-q:v', '2',
             thumbnail_path
         ], check=True)
-        return redirect(url_for('result', video_name=filename, video_thumbnail=f"/{temp_dir}/temp_{timestamp}.jpg", url=filepath))
+        return jsonify({'video_name': filename, 'video_thumbnail': thumbnail_path, 'url': filepath})
+
 # 结果页面
 @app.route('/result')
 def result():
@@ -65,6 +69,7 @@ def result():
     url = request.args.get('url')
     return render_template('result.html', video_name=video_name, video_thumbnail=video_thumbnail, url=url)
 
+
 @app.route('/runCode', methods=['POST'])
 def run_code():
     second = request.form.get('second')
@@ -72,33 +77,40 @@ def run_code():
     email_link = request.form.get('email_link')
     sound_id = request.form.get('soundId')
     language = request.form.get('language')
+    with_srt = 2
 
     # 将数据传递给 main 方法
-    thread = threading.Thread(target=main, args=(second, youtube_link, email_link, sound_id, language))
+    thread = threading.Thread(target=main, args=(second, youtube_link, email_link, sound_id, language, with_srt))
     thread.start()
 
     # 跳转到 thanks 页面
     return redirect(url_for('thanks'))
 
+
 @app.route('/thanks')
 def thanks():
     return render_template('thanks.html')
+
 
 VIDEO_FOLDER = os.path.join(os.getcwd(), 'Video_generated')
 TEMP_FOLDER = os.path.join(os.getcwd(), 'temp')
 ICON_FOLDER = os.path.join(os.getcwd(), 'icon')
 
+
 @app.route('/videos/<path:filename>')
 def download_file(filename):
     return send_from_directory(VIDEO_FOLDER, filename)
+
 
 @app.route('/temp/<path:filename>')
 def show_image(filename):
     return send_from_directory(TEMP_FOLDER, filename)
 
+
 @app.route('/icon/<path:filename>')
 def show_icon(filename):
     return send_from_directory(ICON_FOLDER, filename)
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)

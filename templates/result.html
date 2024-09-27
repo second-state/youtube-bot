@@ -173,10 +173,11 @@
 <body>
 <form id="runCode" action="/runCode" method="POST">
     <div class="result-body" style="width: 80%;">
-        <img class="result-img" style="border-radius: 1.25rem;"
+        <img class="result-img" id="resultImg"
+             style="border-radius: 1.25rem; object-fit: cover; object-position: center;"
              src="{{ video_thumbnail }}"/>
         <div class="result-date" style="display: flex;justify-content: space-between;flex-direction: column;">
-            <div style="flex: 2;font-size: 2.25rem;word-break: break-all;">{{ video_name }}</div>
+            <div style="flex: 2;font-size: 2rem;word-break: break-all;">{{ video_name }}</div>
             <div style="flex: 2;font-size: 1.5rem;display: flex;align-items: center;">
                 <div id="title">English to</div>
                 <img onclick="changeLanguage()" style="cursor: pointer;width: 1.5rem;margin-left: 0.5rem;"
@@ -222,22 +223,60 @@
         </div>
     </div>
 
+<!--    <div style="width: 80%;margin-top: 2rem;">-->
+<!--        <div onclick="openExtend()" style="user-select: none;cursor: pointer;display: flex;">-->
+<!--            <img style="width: 0.8rem;transform: rotate(90deg);margin-right: 0.3rem;"-->
+<!--                 src="/icon/open.svg"/>-->
+<!--            <div>扩展功能：</div>-->
+<!--        </div>-->
+<!--        <div style="user-select: none;padding-left: 1rem;margin-top: 0.5rem;display: none;" id="extend-place">-->
+<!--            <div style="display: flex;">-->
+<!--                <label style="display: flex;align-items: center;cursor: pointer;">-->
+<!--                    <input onchange="selectSrt(this.checked)" style="padding-left: 0;margin-left:0;" type="checkbox"/>-->
+<!--                    <span>为视频添加字幕</span>-->
+<!--                </label>-->
+<!--                <div style="display: flex;margin-left: 2rem;">-->
+<!--                    <div onclick="changeSrtType(this)" class="srtType" id="1"-->
+<!--                         style="cursor: pointer;padding: 0.2rem 1.5rem;border: 2px solid #8C6CE3;border-right: 1px solid #8C6CE3;background-color: #8C6CE3;color: #FFFFFF;font-weight: 500;">-->
+<!--                        软字幕-->
+<!--                    </div>-->
+<!--                    <div onclick="changeSrtType(this)" class="srtType" id="2"-->
+<!--                         style="cursor: pointer;padding: 0.2rem 1.5rem;border: 2px solid #8C6CE3;border-left: 1px solid #8C6CE3;">-->
+<!--                        硬字幕-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--                <input id="withSrt" name="withSrt" value="0" type="hidden"/>-->
+<!--            </div>-->
+<!--            <div style="display:flex;align-items: center;margin-top: 0.4rem;">-->
+<!--                <img style="width: 0.9rem;"-->
+<!--                     src="/icon/info.svg"/>-->
+<!--                <div style="font-size: 0.7rem;margin-left: 0.25rem;color: #cccccc">-->
+<!--                    软字幕可以开关，硬字幕是直接烧录在视频中，无法隐藏-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+
     <div style="position: relative;display: flex;justify-content: space-between;align-items: center;width: 80%;margin-top: 4rem;">
         <input name="youtube_link" value="{{url}}" style="display: none;"/>
-        <input class="result-input" style="border: 1px solid #8C6CE3;border-radius: 0.625rem;width: 100%;height: 4rem;font-size: 1.5rem;padding-left: 1rem;min-width: 0;"
+        <input class="result-input"
+               style="border: 1px solid #8C6CE3;border-radius: 0.625rem;width: 100%;height: 4rem;font-size: 1.5rem;padding-left: 1rem;min-width: 0;"
                type="text" id="email-placeholder" name="email_link">
-        <button class="pc-submit" style="background: #8C6CE3;position: absolute;right: 0.5rem;height: 3rem;border: 0;border-radius: 0.625rem;padding: 0 2rem 0;font-size: 1.5rem;color: #FFFFFF;"
+        <button class="pc-submit"
+                style="background: #8C6CE3;position: absolute;right: 0.5rem;height: 3rem;border: 0;border-radius: 0.625rem;padding: 0 2rem 0;font-size: 1.5rem;color: #FFFFFF;"
                 type="submit" id="pc-pay">
             Pay $2.99 (for free now)
         </button>
     </div>
-    <button class="mobile-submit" style="background: #8C6CE3;height: 3rem;border: 0;border-radius: 0.625rem;width: 80%;font-size: 1.5rem;color: #FFFFFF;"
+    <button class="mobile-submit"
+            style="background: #8C6CE3;height: 3rem;border: 0;border-radius: 0.625rem;width: 80%;font-size: 1.5rem;color: #FFFFFF;"
             type="submit" id="mobile-pay">
         Pay $2.99 (for free now)
     </button>
 </form>
 </body>
 <script>
+    const img = document.getElementById('resultImg');
     const dropdown = document.getElementById('dropdown');
     const optionsList = document.getElementById('optionsList');
     const emailPlaceholder = document.getElementById('email-placeholder');
@@ -246,10 +285,54 @@
     const languageInput = document.getElementById('language');
     const pcPayButton = document.getElementById('pc-pay');
     const mobilePayButton = document.getElementById('mobile-pay');
+    // const extendPlace = document.getElementById('extend-place');
+    // const withSrtInput = document.getElementById('withSrt');
+    // const srtTypeList = document.getElementsByClassName('srtType');
+
+    let srtType = "1";
 
     languageInput.value = trans_language;
 
+    // function openExtend() {
+    //     if (extendPlace.style.display === "none") {
+    //         console.log(extendPlace.style.display)
+    //         extendPlace.style.display = "block"
+    //     } else {
+    //         extendPlace.style.display = "none"
+    //     }
+    // }
+    //
+    // function selectSrt(isChecked) {
+    //     if(isChecked){
+    //         withSrtInput.value = srtType
+    //     }else {
+    //         withSrtInput.value = "0"
+    //     }
+    // }
+    //
+    // function changeSrtType(e) {
+    //     if (withSrtInput.value && withSrtInput.value !== "0") {
+    //         for (let i = 0; i < srtTypeList.length; i++) {
+    //             const thisE = srtTypeList[i]
+    //             if(thisE.id === e.id) {
+    //                 thisE.style.backgroundColor = "#8C6CE3"
+    //                 thisE.style.color = "#FFF"
+    //             }else {
+    //                 thisE.style.backgroundColor = "transparent"
+    //                 thisE.style.color = "#000"
+    //             }
+    //         }
+    //     }
+    //     console.log(e.id)
+    // }
+
+    resize();
+
     function resize() {
+        const aspectRatio = 16 / 9;
+        const width = img.clientWidth;
+        console.log(width / aspectRatio)
+        img.style.height = `${width / aspectRatio}px`;
         dropdown.style.width = inputBox.getBoundingClientRect().width - 2 + 'px';
     }
 
@@ -280,7 +363,7 @@
         const options = optionsList.getElementsByTagName('li');
         let setValue = inputValue
 
-            inputBox.style.borderRadius = "0.3125rem 0.3125rem 0 0";
+        inputBox.style.borderRadius = "0.3125rem 0.3125rem 0 0";
 
         resize();
 
@@ -336,6 +419,7 @@
     }
 
     checkInput();
+
 
     window.onresize = resize
 

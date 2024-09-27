@@ -1,6 +1,7 @@
 import re
 import requests
 import subprocess
+from format_timestamps import *
 
 from voice_generate import *
 
@@ -10,7 +11,7 @@ DOMAIN = os.getenv("DOMAIN")
 
 
 def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", email_link="juyichen0413@gmail.com",
-         sound_id="59cb5986671546eaa6ca8ae6f29f6d22", language="zh"):
+         sound_id="59cb5986671546eaa6ca8ae6f29f6d22", language="zh", with_srt=0):
     video_temp_dir = 'Video_temp'
     video_downloaded_dir = 'Video_downloaded'
     video_generated = 'Video_generated'
@@ -107,7 +108,6 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
             else:
                 print("音频提取失败，已退出程序。")
                 return
-
             print("下载成功，视频已转换为 mp4，音频已提取，并移动到 Video_downloaded 目录。")
             # 通过 get_transcript 函数获取音频文件的转录文本
             result = get_transcript_with_timestamps(dst_audio)
@@ -115,31 +115,10 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
             print("音频转录文本：")
             print(transcript)
             print("合并成完整句子：")
-            paragraphs = transcript.split("\n")
-            final_transcript = []
-            # text_list = []
-            last_start = ""
-            temp_sentence = ""
-            for i, paragraph in enumerate(paragraphs):
-                pattern = r'\[(\d{2}:\d{2}:\d{2}\.\d{3}) --> (\d{2}:\d{2}:\d{2}\.\d{3})\]\s*(.*)'
-                match = re.match(pattern, paragraph)
-                if match and match.group(3) and not match.group(3).startswith(("[", "{")):
-                    start_time = match.group(1)
-                    if last_start:
-                        start_time = last_start
-                    end_time = match.group(2)
-                    sentence = match.group(3).strip()
-                    if temp_sentence:
-                        sentence = temp_sentence + " " + sentence
-                    if sentence.endswith("."):
-                        last_start = ""
-                        temp_sentence = ""
-                        final_transcript.append(f"[{start_time} --> {end_time}]  {sentence}")
-                        # text_list.append(sentence)
-                    else:
-                        temp_sentence = sentence
-                        last_start = start_time
-            transcript = "\n".join(final_transcript)
+            format_data = format_subtitles_with_timestamps(transcript)
+            total = format_data["total"]
+            transcript = format_data["transcript"]
+            final_transcript = format_data["final_transcript"]
             # 将 transcript 保存为 txt 文件，文件名为音频文件名 + _en.txt 后缀
             transcript_file = os.path.splitext(dst_audio)[0] + "_en.txt"
             with open(transcript_file, "w") as f:
@@ -158,43 +137,8 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                         system_prompt_script_translator = system_prompt_script_translator_japanese
                     else:
                         system_prompt_script_translator = system_prompt_script_translator_chinese
-                    text_script = openai_gpt_chat(system_prompt_script_translator, sentence)
-                    translated_text_list.append(f"[{start_time} --> {end_time}]  {text_script}")
-            # original_script = ""
-            # single_script = ""
-            # translated_script_list = []
-            # for i,text in enumerate(text_list):
-            #     temp_text = original_script + "\n" + text
-            #     if len(temp_text) >= 500:
-            #         if not original_script:
-            #             original_script = temp_text
-            #         else:
-            #             single_script = openai_gpt_chat(system_prompt_script_translator, text)
-            #         text_script = openai_gpt_chat(system_prompt_script_translator, original_script)
-            #         original_script = ""
-            #         translated_script_list.append(text_script)
-            #         if single_script:
-            #             translated_script_list.append(single_script)
-            #             single_script = ""
-            #     elif i == len(text_list) - 1:
-            #         text_script = openai_gpt_chat(system_prompt_script_translator, temp_text)
-            #         original_script = ""
-            #         translated_script_list.append(text_script)
-            #     else:
-            #         original_script = temp_text
-            # translated_script = "\n".join(translated_script_list)
-            # print(f"translated_script:{translated_script}")
-            # cn_text_list = translated_script.split("\n")
-            # translated_text_list = []
-            # for i, en_time in enumerate(final_transcript):
-            #     pattern = r'\[(\d{2}:\d{2}:\d{2}\.\d{3}) --> (\d{2}:\d{2}:\d{2}\.\d{3})\]\s*(.*)'
-            #     match = re.match(pattern, en_time)
-            #     if match:
-            #         start_time = match.group(1)
-            #         end_time = match.group(2)
-            #         sentence = match.group(3)
-            #         print(f"{sentence} ==> {cn_text_list[i]}")
-            #         translated_text_list.append(f"[{start_time} --> {end_time}]  {cn_text_list[i]}")
+                    sentence_translation = openai_gpt_chat(system_prompt_script_translator, sentence)
+                    translated_text_list.append(f"[{start_time} --> {end_time}]  {sentence_translation}")
             translated_text = "\n".join(translated_text_list)
             print("中文翻译文本：")
             print(translated_text)
@@ -204,13 +148,17 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                 f.write(translated_text)
             # 通过 chinese_audio_generation 函数生成中文音频并保存在 Video_downloaded 目录下，dst_audio 的文件名后增加 _cn + .mp3 后缀
             output_file = os.path.splitext(dst_audio)[0] + f"_{language}.mp3"
-            chinese_audio_batch_generation_and_merge(translated_text, output_file, offset_seconds, dst_video,
+            temp_dir = chinese_audio_batch_generation_and_merge(translated_text, output_file, offset_seconds, dst_video,
                                                      model_id, api_key=fish_audio_api_key)
             # 判断 output_file 是否存在，如果存在则打印成功信息
             if os.path.isfile(output_file):
                 print(f"中文音频已生成并保存为 {output_file}")
                 try:
-                    output_filename = process_video(dst_video, output_file, offset_seconds, language)
+                    srt_file = ""
+                    if with_srt != 0:
+                        srt_file = os.path.join(temp_dir, f"{os.path.splitext(dst_audio)[0]}_srt.mp3")
+                        convert_to_srt(translated_text, srt_file)
+                    output_filename = process_video(dst_video, output_file, offset_seconds, language, srt_file, with_srt)
                     print(f"Output file: {output_filename}")
                     # 将 output_filename 移到 video_generated 文件夹下，并打印最新的文件 path，另外将video_downloaded_dir文件夹中剩余的其他文件移到 video_temp_dir
                     new_output_file = os.path.join(video_generated, os.path.basename(output_filename))
