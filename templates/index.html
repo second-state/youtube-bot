@@ -146,7 +146,7 @@
                 const videoName = encodeURIComponent(response.video_name);
                 const videoThumbnail = encodeURIComponent(response.video_thumbnail);
                 const url = encodeURIComponent(response.url);
-                const redirectUrl = `http://127.0.0.1:5000/result?video_name=${videoName}&video_thumbnail=${videoThumbnail}&url=${url}`;
+                const redirectUrl = `/result?video_name=${videoName}&video_thumbnail=${videoThumbnail}&url=${url}`;
                 window.location.href = redirectUrl;
             } else {
                 document.getElementById('progress').style.width = '100%';
