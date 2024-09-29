@@ -22,11 +22,10 @@ def format_subtitles_with_timestamps(transcript):
             sentence = re.sub(r'[^，。！？!?,.a-zA-Z0-9\u4e00-\u9fa5\uAC00-\uD7AF\u3040-\u30FF]', ' ', sentence)
             # 合并一个总和的，给ai用
             total = total + " " + sentence
-            # final_transcript.append(f"[{start_time} --> {end_time}]  {sentence}")
             # 如果有没完成的数据，和这一句拼起来
             if temp_sentence:
                 sentence = temp_sentence + " " + sentence
-            if sentence.endswith("."):
+            if sentence.endswith(".") or sentence.endswith("!") or sentence.endswith("?") or i + 1 == len(paragraphs):
                 last_end = end_time
                 temp_sentence = ""
                 final_transcript.append(f"[{start_time} --> {end_time}]  {sentence}")

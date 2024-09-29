@@ -196,8 +196,8 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                     #         target_file = os.path.join(video_temp_dir, f)
                     #         shutil.move(file_path, target_file)
 
-                except:
-                    print("视频处理失败。")
+                except Exception as e:
+                    print(f"视频处理失败。{e}")
                 url = "https://code.flows.network/webhook/ruvTvWEtUoK0WyZq3w5y/send_email"
 
                 if language == "ja":
