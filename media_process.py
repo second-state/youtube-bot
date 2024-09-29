@@ -73,7 +73,7 @@ def process_video(mp4_path, original_mp4_path, mp3_path, offset_seconds=5, langu
         print(f"Error: mp3 file '{mp3_path}' does not exist.")
         sys.exit(1)
 
-    if os.path.splitext(mp4_path)[0] + f"_{language}" != os.path.splitext(mp3_path)[0]:
+    if os.path.splitext(mp4_path)[0].rsplit('_', 1)[0] + f"_{language}" != os.path.splitext(mp3_path)[0]:
         print(f"Error: mp4 file '{mp4_path}' and mp3 file '{mp3_path}' are not matched.")
         sys.exit(1)
 
@@ -140,7 +140,7 @@ def process_video(mp4_path, original_mp4_path, mp3_path, offset_seconds=5, langu
 
     add_srt_command = [
         "ffmpeg", "-y", "-i", original_mp4_path,
-        "-vf", f"subtitles={srt_file}:force_style='FontName=汉呈正文宋体'", output_srt_filename
+        "-vf", f"subtitles={srt_file}:force_style='FontName=汉呈正文宋体,Alignment=2,MaxLineLength=40'", output_srt_filename
     ]
 
     # Step 7: Execute ffmpeg command

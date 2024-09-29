@@ -165,9 +165,8 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                     srt_file = ""
                     if with_srt != 0:
                         srt_file = f"{os.path.splitext(dst_audio)[0]}_srt.srt"
-                        print(srt_file)
                         convert_to_srt(translated_text, srt_file)
-                    output_filename_list = process_video(fix_video, dst_video, output_file, offset_seconds, language, srt_file,with_srt)
+                    output_filename_list = process_video(fix_video, dst_video, output_file, offset_seconds, language, srt_file, with_srt)
                     output_video_filename = output_filename_list['output_video_filename']
                     output_srt_filename = output_filename_list['output_srt_filename']
                     # 将 output_filename 移到 video_generated 文件夹下，并打印最新的文件 path，另外将video_downloaded_dir文件夹中剩余的其他文件移到 video_temp_dir

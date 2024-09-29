@@ -217,9 +217,9 @@ def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_sec
     ]
     try:
         subprocess.run(ffmpeg_command, check=True)
-        print(f"Output file: {output_file}")
+        print(f"Output file: {fix_video}")
         # shutil.rmtree(temp_dir)
-        return output_file
+        return fix_video
     except subprocess.CalledProcessError as e:
         print(f"Error during ffmpeg processing: {e}")
 
