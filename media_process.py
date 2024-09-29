@@ -1,4 +1,6 @@
 import os
+import random
+import string
 import subprocess
 from datetime import datetime
 
@@ -58,7 +60,7 @@ def split_audio_from_mp4(input_source_mp4, output_audio_format='mp3'):
         return None
 
 
-def process_video(mp4_path, mp3_path, offset_seconds=5, language='zh', srt_file="", with_srt=0):
+def process_video(mp4_path, original_mp4_path, mp3_path, offset_seconds=5, language='zh', srt_file="", with_srt=0):
     import os
     import subprocess
     import sys
@@ -119,41 +121,42 @@ def process_video(mp4_path, mp3_path, offset_seconds=5, language='zh', srt_file=
 
     # Step 6: Build ffmpeg command
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    output_filename = os.path.splitext(mp4_path)[0] + timestamp + f"_{language}.mp4"
+    letters = string.ascii_letters + string.digits
+    random_value = ''.join(random.choice(letters) for _ in range(6)) + timestamp
+    output_video_filename = "Video_downloaded/" + random_value + f"_{language}.mp4"
+    output_srt_filename = "Video_downloaded/" + random_value + f"_dub.mp4"
     delay_in_ms = int(offset_seconds * 1000)
-    if srt_file and with_srt == 2:
-        video_complex = f"[0:v]setpts=PTS/{speed_factor}[v],subtitles={srt_file}[v];"
-    else:
-        video_complex = f"[0:v]setpts=PTS/{speed_factor}[v];"
     filter_complex = (
-        f"{video_complex}"
+        f"[0:v]setpts=PTS/{speed_factor}[v];"
         f"[0:a]{atempo_filters},volume=0.05[a1];"
         f"[1:a]adelay={delay_in_ms}|{delay_in_ms},volume=1.2[a2];"
         f"[a1][a2]amix=inputs=2:duration=longest[a]"
     )
-    if srt_file and with_srt == 1:
-        command = [
-            "ffmpeg", "-y", "-i", mp4_path, "-i", mp3_path, "-i", srt_file,
-            "-filter_complex", filter_complex,
-            "-map", "[v]", "-map", "[a]", "-c:s", "srt", output_filename
-        ]
-    else:
-        command = [
-            "ffmpeg", "-y", "-i", mp4_path, "-i", mp3_path,
-            "-filter_complex", filter_complex,
-            "-map", "[v]", "-map", "[a]", "-map", "2", output_filename
-        ]
+    command = [
+        "ffmpeg", "-y", "-i", mp4_path, "-i", mp3_path,
+        "-filter_complex", filter_complex,
+        "-map", "[v]", "-map", "[a]", output_video_filename
+    ]
+
+    add_srt_command = [
+        "ffmpeg", "-y", "-i", original_mp4_path,
+        "-vf", f"subtitles={srt_file}:force_style='FontName=汉呈正文宋体'", output_srt_filename
+    ]
 
     # Step 7: Execute ffmpeg command
     try:
-        result = subprocess.run(command, check=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        subprocess.run(command, check=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        subprocess.run(add_srt_command, check=True)
     except subprocess.CalledProcessError as e:
         print(f"Error during ffmpeg processing: {e.stderr.decode('utf-8')}")
         sys.exit(1)
 
     # Step 8: Output file saved, print filename
-    print(f"Output file: {output_filename}")
-    return output_filename
+    print(f"Output file: {output_video_filename}, {output_srt_filename}")
+    return {
+        "output_video_filename": output_video_filename,
+        "output_srt_filename": output_srt_filename
+    }
 
 
 def get_atempo_filters(speed_factor):
@@ -201,6 +204,7 @@ def mp3_to_video_with_image(mp3_file, image_file):
 
 if __name__ == "__main__":
     print("Processing video...")
-    mp3_file = 'Audio_generated/news_today.mp3'
-    image_file = 'Audio_generated/news_today.png'
-    mp3_to_video_with_image(mp3_file, image_file)
+    mp4_path = 'Video_downloaded/WeChat_20240923082739.mp4'
+    mp3_path = 'Video_downloaded/WeChat_20240923082739_zh.mp3'
+    srt_file = 'Video_downloaded/WeChat_20240923082739_srt.srt'
+    process_video(mp4_path, mp3_path, 0, 'zh', srt_file, 2)

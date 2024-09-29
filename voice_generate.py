@@ -100,6 +100,7 @@ def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_sec
         pattern = r'\[(\d{2}:\d{2}:\d{2}\.\d{3}) --> (\d{2}:\d{2}:\d{2}\.\d{3})\]\s*(.*)'
         # 查找匹配的部分
         match = re.match(pattern, paragraph)
+        print(match.group(3))
         if match and match.group(3) and not match.group(3).startswith(("[", "{")):
             start_time = match.group(1)
             end_time = match.group(2)
@@ -196,11 +197,14 @@ def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_sec
         for video in temp_videos:
             f.write(f"file '{os.path.abspath(video)}'\n")
 
+    print(os.path.splitext(dst_video)[0])
+    fix_video = os.path.splitext(dst_video)[0] + "_fix.mp4"
+    print(fix_video)
     # 合并所有片段
     subprocess.run([
         "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", f"{temp_dir}/filelist.txt",
         "-c:v", "libx264", "-preset", "fast", "-crf", "23",
-        "-c:a", "aac", "-ar", "44100", "-ac", "2", "-strict", "experimental", dst_video
+        "-c:a", "aac", "-ar", "44100", "-ac", "2", "-strict", "experimental", fix_video
     ])
 
 # 合并临时文件
@@ -215,7 +219,7 @@ def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_sec
         subprocess.run(ffmpeg_command, check=True)
         print(f"Output file: {output_file}")
         # shutil.rmtree(temp_dir)
-        return temp_dir
+        return output_file
     except subprocess.CalledProcessError as e:
         print(f"Error during ffmpeg processing: {e}")
 

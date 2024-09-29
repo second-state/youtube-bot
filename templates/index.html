@@ -110,23 +110,45 @@
     function handleSubmit() {
         const fileInput = document.getElementById('file-input');
         const file = fileInput.files[0];
-        console.log(file.name)
 
         if (!file) return;
 
-        const formData = new FormData();
-        formData.append('file', file);
+        const maxSizeMB = 100; // 最大文件大小为100MB
         const userLang = navigator.language || navigator.userLanguage;
+        let alertText = ""
+        let uploadText = ""
+        let uploadErrorText = ""
+        let networkErrorText = ""
+        let errorText = ""
         if (userLang.startsWith('zh')) {
-            document.getElementById('upload-place').innerText = `正在上传 ${file.name}`;
+            alertText = `文件大小超过 ${maxSizeMB}MB， 请上传较小的文件！`;
+            uploadText = `正在上传 ${file.name}`;
+            uploadErrorText = `上传失败，请重新上传！`;
+            networkErrorText = `发生网络错误，请重新上传！`;
+            errorText = `错误`;
 
         }else if(userLang.startsWith('ja')) {
-            document.getElementById('upload-place').innerText = `${file.name} をアップロードしています`;
+            alertText = `ファイルサイズは ${maxSizeMB}MB を超えています。より小さいファイルをアップロードしてください！`;
+            uploadText = `${file.name} をアップロードしています`;
+            uploadErrorText = `アップロードに失敗しました。再度アップロードしてください！`;
+            networkErrorText = `ネットワークエラーが発生しました。再度アップロードしてください！`;
+            errorText = `エラー`;
 
         }else {
-            document.getElementById('upload-place').innerText = `Uploaded ${file.name}`;
-
+            alertText = `The file size exceeds ${maxSizeMB}MB. Please upload a smaller file!`;
+            uploadText = `Uploaded ${file.name}`;
+            uploadErrorText = `Upload failed, please upload again!`;
+            networkErrorText = `Network error occurred, please upload again!`;
+            errorText = `Network error occurred, please upload again!`;
         }
+        if (file.size > maxSizeMB * 1024 * 1024) {
+            alert(alertText);
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        document.getElementById('upload-place').innerText = uploadText
 
         const xhr = new XMLHttpRequest();
 
@@ -146,21 +168,20 @@
                 const videoName = encodeURIComponent(response.video_name);
                 const videoThumbnail = encodeURIComponent(response.video_thumbnail);
                 const url = encodeURIComponent(response.url);
-                const redirectUrl = `/result?video_name=${videoName}&video_thumbnail=${videoThumbnail}&url=${url}`;
-                window.location.href = redirectUrl;
+                window.location.href = `/result?video_name=${videoName}&video_thumbnail=${videoThumbnail}&url=${url}`;
             } else {
                 document.getElementById('progress').style.width = '100%';
                 document.getElementById('progress').style.backgroundColor = '#d73232';
-                document.getElementById('status').textContent = 'error';
-                document.getElementById('upload-place').textContent = 'Upload failed, please upload again!';
+                document.getElementById('status').textContent = errorText;
+                document.getElementById('upload-place').textContent = uploadErrorText;
             }
         };
 
         xhr.onerror = function () {
             document.getElementById('progress').style.width = '100%';
             document.getElementById('progress').style.backgroundColor = '#d73232';
-            document.getElementById('status').textContent = 'error';
-            document.getElementById('upload-place').textContent = 'Network error occurred, please upload again!';
+            document.getElementById('status').textContent = errorText;
+            document.getElementById('upload-place').textContent = networkErrorText;
         };
 
         xhr.open('POST', '/upload', true);
