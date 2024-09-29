@@ -139,13 +139,21 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                     else:
                         system_prompt_script_translator = system_prompt_script_translator_chinese
                     sentence_translation = openai_gpt_chat(system_prompt_script_translator, sentence)
+                    sentence_translation = sentence_translation.replace('\n', '')
+                    while True:
+                        if bool(re.search(r'[a-zA-Z]', sentence_translation)):
+                            if language == 'ja':
+                                system_prompt_script_translator_again = f"I tried to translate this content into Japanese: {sentence}, but I found that there is also an English part in it. Can you help me translate it again and make sure it is all translated into Japanese. but keep all proper nouns (like programming languages, brand names, etc.) unchanged. For example, 'I write this code with Rust.' should be translated as 'このコードはRustで書きました。' This is what I translated this time:"
+                            else:
+                                system_prompt_script_translator_again = f"I tried to translate this content into Chinese: {sentence}, but I found that there is also an English part in it. Can you help me translate it again and make sure it is all translated into Chinese. but keep all proper nouns (like programming languages, brand names, etc.) unchanged. For example, 'I write this code with Rust.' should be translated as '我用 Rust 编写这段代码.' This is what I translated this time:"
+                            new_translation = openai_gpt_chat(system_prompt_script_translator + system_prompt_script_translator_again, sentence_translation)
+                            new_translation = new_translation.replace('\n', '')
+                            if new_translation == sentence_translation:
+                                break
+                            sentence_translation = new_translation
+                        else:
+                            break
                     print(sentence_translation)
-                    if bool(re.search(r'[a-zA-Z]', sentence_translation)):
-                        system_prompt_script_translator_again = f"I tried to translate this content into Chinese: {sentence}, but I found that there is also an English part in it. Can you help me translate it again and make sure it is all translated into Chinese. This is what I translated this time:"
-                        sentence_translation = openai_gpt_chat(
-                            system_prompt_script_translator + system_prompt_script_translator_again,
-                            sentence_translation)
-                        print(sentence_translation)
                     translated_text_list.append(f"[{start_time} --> {end_time}]  {sentence_translation}")
             translated_text = "\n".join(translated_text_list)
             print("中文翻译文本：")
@@ -182,31 +190,6 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                     shutil.move(transcript_file, new_transcript_file)
                     new_translated_script_file = os.path.join(video_generated, final_transcript)
                     shutil.move(translated_script_file, new_translated_script_file)
-                    # 用 openai_gpt_chat(system_prompt, prompt) 为视频 title 生成中文翻译，prompt 为视频base file name，并用翻译后的中文title 替代原始的 title
-                    # # chinese_title = openai_gpt_chat(os.getenv("SYSTEM_PROMPT_TITLE_TRANSLATOR"), english_title)
-                    # new_output_file_cn = os.path.join(video_generated, english_title + '_cn.mp4')
-                    # os.rename(new_output_file, new_output_file_cn)
-                    # print(f"Output file: {final_title}")
-                    url = "https://code.flows.network/webhook/ruvTvWEtUoK0WyZq3w5y/send_email"
-
-                    if language == "ja":
-                        trans_message = f"親愛なるユーザーの皆様，\n\n弊社の動画翻訳サービスをご利用いただき誠にありがとうございます。ビデオの翻訳が完了しました。翻訳されたビデオは以下のリンクからご覧いただけます：\n{DOMAIN}/videos/{final_video}\n\n字幕付きのオリジナル動画：\n{DOMAIN}/videos/{final_srt}\n\nオリジナル動画から認識されたテキスト：\n{DOMAIN}/videos/{final_en}\n\n翻訳されたテキスト：\n{DOMAIN}/videos/{final_transcript}\n\nご質問がある場合、またはさらにサポートが必要な場合は、お気軽にお問い合わせください。\n\nご支援に改めて感謝し、より質の高いサービスを提供できることを楽しみにしています！\n\n幸運を祈ります，\n\nSecond State チーム"
-                    else:
-                        trans_message = f"尊敬的用户，\n\n感谢您使用我们的视频翻译服务。我们已经完成了您的视频翻译工作，您可以通过以下链接查看翻译后的视频：\n{DOMAIN}/videos/{final_video}\n\n原声加字幕的视频：\n{DOMAIN}/videos/{final_srt}\n\n原视频识别到的文字：\n{DOMAIN}/videos/{final_en}\n\n翻译后的文字：\n{DOMAIN}/videos/{final_transcript}\n\n如果您有任何疑问或需要进一步的帮助，请随时与我们联系。\n\n再次感谢您的支持，期待为您提供更多优质的服务！\n\n祝好，\n\nSecond State 团队"
-                    data = {
-                        "code": "1234",
-                        "mime": "text/plain",
-                        "to": email_link,
-                        "subject": "您的视频翻译已完成 | Your Video Translation is Complete",
-                        "body": f"{trans_message}\n\n\nDear User,\n\nThank you for using our video translation service. We have completed the translation of your video, and you can view the translated video via the link below:\n{DOMAIN}/videos/{final_video}\n\nOriginal video with subtitles:\n{DOMAIN}/videos/{final_srt}\n\nText recognized from the original video:\n{DOMAIN}/videos/{final_en}\n\nTranslated text:\n{DOMAIN}/videos/{final_transcript}\n\nIf you have any questions or need further assistance, feel free to contact us.\n\nOnce again, thank you for your support. We look forward to serving you in the future!\n\nBest regards,\n\nSecond State Team"
-                    }
-
-                    # 发送 POST 请求，使用 json 参数将字典自动转换为 JSON 格式
-                    response = requests.post(url, json=data)
-
-                    # 打印响应结果
-                    print(response.status_code)
-                    print(response.text)
                     # for f in os.listdir(video_downloaded_dir):
                     #     file_path = os.path.join(video_downloaded_dir, f)
                     #     if os.path.isfile(file_path):
@@ -215,6 +198,26 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
 
                 except:
                     print("视频处理失败。")
+                url = "https://code.flows.network/webhook/ruvTvWEtUoK0WyZq3w5y/send_email"
+
+                if language == "ja":
+                    trans_message = f"親愛なるユーザーの皆様，\n\n弊社の動画翻訳サービスをご利用いただき誠にありがとうございます。ビデオの翻訳が完了しました。翻訳されたビデオは以下のリンクからご覧いただけます：\n{DOMAIN}/videos/{final_video}\n\n字幕付きのオリジナル動画：\n{DOMAIN}/videos/{final_srt}\n\nオリジナル動画から認識されたテキスト：\n{DOMAIN}/videos/{final_en}\n\n翻訳されたテキスト：\n{DOMAIN}/videos/{final_transcript}\n\nご質問がある場合、またはさらにサポートが必要な場合は、お気軽にお問い合わせください。\n\nご支援に改めて感謝し、より質の高いサービスを提供できることを楽しみにしています！\n\n幸運を祈ります，\n\nSecond State チーム"
+                else:
+                    trans_message = f"尊敬的用户，\n\n感谢您使用我们的视频翻译服务。我们已经完成了您的视频翻译工作，您可以通过以下链接查看翻译后的视频：\n{DOMAIN}/videos/{final_video}\n\n原声加字幕的视频：\n{DOMAIN}/videos/{final_srt}\n\n原视频识别到的文字：\n{DOMAIN}/videos/{final_en}\n\n翻译后的文字：\n{DOMAIN}/videos/{final_transcript}\n\n如果您有任何疑问或需要进一步的帮助，请随时与我们联系。\n\n再次感谢您的支持，期待为您提供更多优质的服务！\n\n祝好，\n\nSecond State 团队"
+                data = {
+                    "code": "1234",
+                    "mime": "text/plain",
+                    "to": email_link,
+                    "subject": "您的视频翻译已完成 | Your Video Translation is Complete",
+                    "body": f"{trans_message}\n\n\nDear User,\n\nThank you for using our video translation service. We have completed the translation of your video, and you can view the translated video via the link below:\n{DOMAIN}/videos/{final_video}\n\nOriginal video with subtitles:\n{DOMAIN}/videos/{final_srt}\n\nText recognized from the original video:\n{DOMAIN}/videos/{final_en}\n\nTranslated text:\n{DOMAIN}/videos/{final_transcript}\n\nIf you have any questions or need further assistance, feel free to contact us.\n\nOnce again, thank you for your support. We look forward to serving you in the future!\n\nBest regards,\n\nSecond State Team"
+                }
+
+                # 发送 POST 请求，使用 json 参数将字典自动转换为 JSON 格式
+                response = requests.post(url, json=data)
+
+                # 打印响应结果
+                print(response.status_code)
+                print(response.text)
             else:
                 print("中文音频生成失败。")
 

@@ -138,9 +138,14 @@ def process_video(mp4_path, original_mp4_path, mp3_path, offset_seconds=5, langu
         "-map", "[v]", "-map", "[a]", output_video_filename
     ]
 
+    if language== 'zh':
+        font_name = "汉呈正文宋体"
+    else:
+        font_name = "PopRumKiwi Telop"
+
     add_srt_command = [
         "ffmpeg", "-y", "-i", original_mp4_path,
-        "-vf", f"subtitles={srt_file}:force_style='FontName=汉呈正文宋体,Alignment=2,MaxLineLength=40'", output_srt_filename
+        "-vf", f"subtitles={srt_file}:force_style='FontName={font_name},Alignment=2,MaxLineLength=30'", output_srt_filename
     ]
 
     # Step 7: Execute ffmpeg command

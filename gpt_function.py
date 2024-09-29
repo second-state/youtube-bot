@@ -7,9 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 system_prompt_script_translator_chinese = os.getenv("SYSTEM_PROMPT_SCRIPT_TRANSLATOR_CHINESE")
-system_prompt_script_translator_chinese_again = os.getenv("SYSTEM_PROMPT_SCRIPT_TRANSLATOR_CHINESE_AGAIN")
 system_prompt_script_translator_japanese = os.getenv("SYSTEM_PROMPT_SCRIPT_TRANSLATOR_JAPANESE")
-system_prompt_script_translator_japanese_again = os.getenv("SYSTEM_PROMPT_SCRIPT_TRANSLATOR_JAPANESE_AGAIN")
 system_prompt_summarizer = os.getenv("SYSTEM_PROMPT_SUMMARIZER")
 
 

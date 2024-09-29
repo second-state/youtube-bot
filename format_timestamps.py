@@ -61,11 +61,57 @@ def format_subtitles_with_timestamps(transcript):
 
 def convert_to_srt(input_text, output_file="subtitles.srt"):
     pattern = r"\[(\d{2}:\d{2}:\d{2}\.\d{3}) --> (\d{2}:\d{2}:\d{2}\.\d{3})\]  (.+)"
+
     with open(output_file, "w", encoding="utf-8") as f:
         matches = re.findall(pattern, input_text)
         for idx, (start_time, end_time, text) in enumerate(matches, 1):
             start_time = start_time.replace('.', ',')
             end_time = end_time.replace('.', ',')
-            f.write(f"{idx}\n")
-            f.write(f"{start_time} --> {end_time}\n")
-            f.write(f"{text}\n\n")
+
+            # 分离毫秒部分
+            start_time_parts = start_time.split(',')
+            end_time_parts = end_time.split(',')
+            start_time_clean = start_time_parts[0]
+            end_time_clean = end_time_parts[0]
+
+            # 计算时间差（以秒为单位）
+            start_time_seconds = sum(int(x) * 60 ** i for i, x in enumerate(reversed(start_time_clean.split(':'))))
+            end_time_seconds = sum(int(x) * 60 ** i for i, x in enumerate(reversed(end_time_clean.split(':'))))
+            duration = end_time_seconds - start_time_seconds
+
+            # 如果文本长度大于50，进行分段处理
+            if len(text) > 35:
+                segments = []
+                start_index = 0
+                segment_duration = duration / (len(text) // 30 + 1) if len(text) > 30 else duration
+
+                while start_index < len(text):
+                    segment = text[start_index:start_index + 30]
+
+                    last_comma = segment.rfind('，')
+                    last_period = segment.rfind('。')
+
+                    if last_comma != -1:
+                        segment = segment[:last_comma + 1]
+                    elif last_period != -1:
+                        segment = segment[:last_period + 1]
+
+                    segments.append(segment.strip())
+                    start_index += len(segment)
+
+                # 计算新的时间段并写入
+                for i, segment in enumerate(segments):
+                    new_start_time_seconds = start_time_seconds + i * segment_duration
+                    new_end_time_seconds = new_start_time_seconds + (segment_duration * len(segment) / 30)
+
+                    new_start_time = f"{int(new_start_time_seconds // 3600):02}:{int((new_start_time_seconds % 3600) // 60):02}:{int(new_start_time_seconds % 60):02},{int((new_start_time_seconds % 1) * 1000):03}"
+                    new_end_time = f"{int(new_end_time_seconds // 3600):02}:{int((new_end_time_seconds % 3600) // 60):02}:{int(new_end_time_seconds % 60):02},{int((new_end_time_seconds % 1) * 1000):03}"
+
+                    f.write(f"{idx}\n")
+                    f.write(f"{new_start_time} --> {new_end_time}\n")
+                    f.write(f"{segment}\n\n")
+                    idx += 1
+            else:
+                f.write(f"{idx}\n")
+                f.write(f"{start_time} --> {end_time}\n")
+                f.write(f"{text}\n\n")
