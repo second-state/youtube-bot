@@ -46,7 +46,8 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
         # yt-dlp 下载命令
         command = [
             'yt-dlp',
-            '--cookies=cookies.txt',
+            '--cookies',
+            'cookies-all.txt',
             '--rm-cache-dir',  # 清除缓存
             '--restrict-filenames',  # 限制文件名字符，避免特殊字符
             '-f',
