@@ -3,9 +3,9 @@ import random
 import string
 import subprocess
 from datetime import datetime
+from send_error import *
 
-
-def split_audio_from_mp4(input_source_mp4, output_audio_format='mp3'):
+def split_audio_from_mp4(input_source_mp4, email_link, output_audio_format='mp3'):
     """
     从 mp4 文件中提取音频，并保存为指定格式的音频文件。
 
@@ -56,6 +56,7 @@ def split_audio_from_mp4(input_source_mp4, output_audio_format='mp3'):
         print(f"音频已成功提取并保存为 {output_audio_file}")
         return output_audio_file
     except subprocess.CalledProcessError as e:
+        send_error_email(f"step 3: 提取音频时出错：{e}", input_source_mp4, email_link)
         print(f"提取音频时出错：{e}")
         return None
 

@@ -10,6 +10,7 @@ import httpx
 import ormsgpack
 from gpt_function import *
 from media_process import *
+from send_error import *
 
 fish_audio_api_key = os.getenv("FISH_AUDIO_API_KEY")
 
@@ -85,7 +86,7 @@ def chinese_audio_generation(input_text, output_file, model_id=audio_id_leowang_
 
 
 # 基于 chinese_audio_generation 函数，实现一个功能，将 input_text 输入的中文根据句号 。 进行切割，每十个句号为一个段落，然后生成临时的音频文件，生成一个临时文件夹 temp 子目录，放在子目录中，最后用 ffmpeg 将所有文件按顺序合并为一个大文件：output_file，合并成功后删除 temp 临时文件夹及包含的所有临时文件，并 return output_file
-def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_seconds, dst_video, model_id=audio_id_leowang_chinese,
+def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_seconds, dst_video, youtube_link, email_link, model_id=audio_id_leowang_chinese,
                                              api_key=fish_audio_api_key):
     paragraphs = input_text.split("\n")
     # 在工作目录下创建临时文件夹
@@ -99,54 +100,59 @@ def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_sec
         temp_file = os.path.join(temp_dir, f"temp_{i}.mp3")
         pattern = r'\[(\d{2}:\d{2}:\d{2}\.\d{3}) --> (\d{2}:\d{2}:\d{2}\.\d{3})\]\s*(.*)'
         # 查找匹配的部分
-        match = re.match(pattern, paragraph)
-        print(match.group(3))
-        if match and match.group(3) and not match.group(3).startswith(("[", "{")):
-            start_time = match.group(1)
-            end_time = match.group(2)
-            time_format = "%H:%M:%S.%f"
-            start_dt = datetime.strptime(start_time, time_format)
-            if i < len(paragraphs) - 1:
-                end_dt = datetime.strptime(end_time, time_format)
-            else:
-                mp4_duration = float(subprocess.check_output(
-                    ["ffprobe", "-v", "error", "-show_entries",
-                     "format=duration", "-of",
-                     "default=noprint_wrappers=1:nokey=1", dst_video],
-                    stderr=subprocess.STDOUT).decode('utf-8').strip())
-                duration = mp4_duration - offset_seconds
-                base_datetime = datetime(1900, 1, 1)
-                duration_dt = timedelta(seconds=duration)
-                end_dt = base_datetime + duration_dt
-            text = match.group(3)
-            temp_audio_file = chinese_audio_generation(text, temp_file, model_id, api_key)
-            target_duration = (end_dt - start_dt).total_seconds()
-            ffprobe_result = subprocess.run(
-                ["ffprobe", "-i", temp_audio_file, "-show_entries", "format=duration", "-v", "quiet", "-of", "csv=p=0"],
-                stdout=subprocess.PIPE
-            )
-            original_duration = float(ffprobe_result.stdout.decode('utf-8').strip())
-            if original_duration > target_duration:
-                speed_factor = original_duration / target_duration
-                split_list.append({
-                    "start_time": start_time,
-                    "end_time": end_time,
-                    "speed_factor": speed_factor
-                })
-                temp_files.append(temp_audio_file)
-            else:
-                temp_files.append(temp_audio_file)
-                silence_time = target_duration - original_duration
-                if original_duration < target_duration:
-                    print(f'[INFO-{i}] create silence file: {silence_time}')
-                    silence_file = f"{temp_dir}/silence_{i}.mp3"
-                    subprocess.run([
-                        'ffmpeg', '-f', 'lavfi', '-t', str(silence_time),
-                        '-i', 'anullsrc=r=44100:cl=mono',  # 设置采样率为 44.100kHz，声道为单声道
-                        '-b:a', '64k',  # 设置比特率为 64kbps
-                        silence_file
-                    ], check=True)
-                    temp_files.append(silence_file)
+        try:
+            match = re.match(pattern, paragraph)
+            print(match.group(3))
+            if match and match.group(3) and not match.group(3).startswith(("[", "{")):
+                start_time = match.group(1)
+                end_time = match.group(2)
+                time_format = "%H:%M:%S.%f"
+                start_dt = datetime.strptime(start_time, time_format)
+                if i < len(paragraphs) - 1:
+                    end_dt = datetime.strptime(end_time, time_format)
+                else:
+                    mp4_duration = float(subprocess.check_output(
+                        ["ffprobe", "-v", "error", "-show_entries",
+                         "format=duration", "-of",
+                         "default=noprint_wrappers=1:nokey=1", dst_video],
+                        stderr=subprocess.STDOUT).decode('utf-8').strip())
+                    duration = mp4_duration - offset_seconds
+                    base_datetime = datetime(1900, 1, 1)
+                    duration_dt = timedelta(seconds=duration)
+                    end_dt = base_datetime + duration_dt
+                text = match.group(3)
+                temp_audio_file = chinese_audio_generation(text, temp_file, model_id, api_key)
+                target_duration = (end_dt - start_dt).total_seconds()
+                ffprobe_result = subprocess.run(
+                    ["ffprobe", "-i", temp_audio_file, "-show_entries", "format=duration", "-v", "quiet", "-of", "csv=p=0"],
+                    stdout=subprocess.PIPE
+                )
+                original_duration = float(ffprobe_result.stdout.decode('utf-8').strip())
+                if original_duration > target_duration:
+                    speed_factor = original_duration / target_duration
+                    split_list.append({
+                        "start_time": start_time,
+                        "end_time": end_time,
+                        "speed_factor": speed_factor
+                    })
+                    temp_files.append(temp_audio_file)
+                else:
+                    temp_files.append(temp_audio_file)
+                    silence_time = target_duration - original_duration
+                    if original_duration < target_duration:
+                        print(f'[INFO-{i}] create silence file: {silence_time}')
+                        silence_file = f"{temp_dir}/silence_{i}.mp3"
+                        subprocess.run([
+                            'ffmpeg', '-f', 'lavfi', '-t', str(silence_time),
+                            '-i', 'anullsrc=r=44100:cl=mono',  # 设置采样率为 44.100kHz，声道为单声道
+                            '-b:a', '64k',  # 设置比特率为 64kbps
+                            silence_file
+                        ], check=True)
+                        temp_files.append(silence_file)
+        except Exception as e:
+            send_error_email(f"step 7: 生成音频{paragraphs[i]}失败：{i}: {str(e)}", youtube_link, email_link)
+            print("生成音频失败")
+            return
 
     temp_videos = []
     last_end_time = "00:00:00.000"  # 初始时间，从视频开始
@@ -158,54 +164,59 @@ def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_sec
         speed_factor = segment['speed_factor']
 
         # 处理不需要改变速度的部分（上一段结束到当前片段开始）
-        if last_end_time < start_time:
-            # 提取中间不需要调整速度的片段
-            temp_filename = f"{temp_dir}/part_no_change_{i}.mp4"
+        try:
+            if last_end_time < start_time:
+                # 提取中间不需要调整速度的片段
+                temp_filename = f"{temp_dir}/part_no_change_{i}.mp4"
+                temp_videos.append(temp_filename)
+                subprocess.run([
+                    "ffmpeg", "-i", dst_video, "-ss", last_end_time, "-to", start_time,
+                    "-r", "30", "-c:v", "libx264", "-preset", "fast", "-crf", "23",
+                    "-reset_timestamps", "1", temp_filename
+                ])
+
+            # 提取需要调整速度的片段
+            temp_filename = f"{temp_dir}/part_slow_{i}.mp4"
             temp_videos.append(temp_filename)
             subprocess.run([
-                "ffmpeg", "-i", dst_video, "-ss", last_end_time, "-to", start_time,
-                "-r", "30", "-c:v", "libx264", "-preset", "fast", "-crf", "23",
-                "-reset_timestamps", "1", temp_filename
+                "ffmpeg", "-ss", start_time, "-to", end_time, "-i", dst_video,  # 移动 -ss 和 -to 到 -i 之前
+                "-filter:v", f"setpts={speed_factor}*PTS",  # 调整视频速度滤镜
+                "-filter:a", f"atempo={1/speed_factor}",  # 调整音频速度滤镜
+                "-r", "30",  # 设置帧率在滤镜之后
+                "-c:v", "libx264", "-preset", "fast", "-crf", "23", "-reset_timestamps", "1",
+                temp_filename
             ])
 
-        # 提取需要调整速度的片段
-        temp_filename = f"{temp_dir}/part_slow_{i}.mp4"
-        temp_videos.append(temp_filename)
-        subprocess.run([
-            "ffmpeg", "-ss", start_time, "-to", end_time, "-i", dst_video,  # 移动 -ss 和 -to 到 -i 之前
-            "-filter:v", f"setpts={speed_factor}*PTS",  # 调整视频速度滤镜
-            "-filter:a", f"atempo={1/speed_factor}",  # 调整音频速度滤镜
-            "-r", "30",  # 设置帧率在滤镜之后
-            "-c:v", "libx264", "-preset", "fast", "-crf", "23", "-reset_timestamps", "1",
-            temp_filename
-        ])
+            # 更新 last_end_time 为当前片段的结束时间
+            last_end_time = end_time
 
-        # 更新 last_end_time 为当前片段的结束时间
-        last_end_time = end_time
+            # 处理最后一个片段之后剩余的视频部分
+            final_filename = f"{temp_dir}/final_part.mp4"
+            temp_videos.append(final_filename)
+            subprocess.run([
+                "ffmpeg", "-i", dst_video, "-ss", last_end_time,
+                "-r", "30", "-c:v", "libx264", "-preset", "fast", "-crf", "23",
+                "-reset_timestamps", "1", final_filename
+            ])
 
-    # 处理最后一个片段之后剩余的视频部分
-    final_filename = f"{temp_dir}/final_part.mp4"
-    temp_videos.append(final_filename)
-    subprocess.run([
-        "ffmpeg", "-i", dst_video, "-ss", last_end_time,
-        "-r", "30", "-c:v", "libx264", "-preset", "fast", "-crf", "23",
-        "-reset_timestamps", "1", final_filename
-    ])
+            # 创建文件列表以合并视频
+            with open(f"{temp_dir}/filelist.txt", "w") as f:
+                for video in temp_videos:
+                    f.write(f"file '{os.path.abspath(video)}'\n")
 
-    # 创建文件列表以合并视频
-    with open(f"{temp_dir}/filelist.txt", "w") as f:
-        for video in temp_videos:
-            f.write(f"file '{os.path.abspath(video)}'\n")
-
-    print(os.path.splitext(dst_video)[0])
-    fix_video = os.path.splitext(dst_video)[0] + "_fix.mp4"
-    print(fix_video)
-    # 合并所有片段
-    subprocess.run([
-        "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", f"{temp_dir}/filelist.txt",
-        "-c:v", "libx264", "-preset", "fast", "-crf", "23",
-        "-c:a", "aac", "-ar", "44100", "-ac", "2", "-strict", "experimental", fix_video
-    ])
+            print(os.path.splitext(dst_video)[0])
+            fix_video = os.path.splitext(dst_video)[0] + "_fix.mp4"
+            print(fix_video)
+            # 合并所有片段
+            subprocess.run([
+                "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", f"{temp_dir}/filelist.txt",
+                "-c:v", "libx264", "-preset", "fast", "-crf", "23",
+                "-c:a", "aac", "-ar", "44100", "-ac", "2", "-strict", "experimental", fix_video
+            ])
+        except Exception as e:
+            send_error_email(f"step 8: 调整视频速度——{split_list[i]}失败：{i}: {str(e)}", youtube_link, email_link)
+            print("调整视频速度失败")
+            return
 
 # 合并临时文件
     ffmpeg_command = [
@@ -221,6 +232,7 @@ def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_sec
         # shutil.rmtree(temp_dir)
         return fix_video
     except subprocess.CalledProcessError as e:
+        send_error_email(f"step 9: 合并音频失败：{e}", youtube_link, email_link)
         print(f"Error during ffmpeg processing: {e}")
 
 

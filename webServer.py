@@ -8,6 +8,7 @@ from flask import Flask, render_template, jsonify, request, redirect, url_for, s
 from werkzeug.utils import secure_filename
 
 from main import main
+# from audio import create_audio_only
 
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
@@ -24,6 +25,7 @@ def index():
 # 处理上传或者YouTube链接
 @app.route('/upload', methods=['POST'])
 def upload():
+    print(request.form)
     if 'youtube_link' in request.form and request.form['youtube_link'].strip():  # 处理YouTube链接
         youtube_link = request.form['youtube_link']
         pattern = r"v=([^&]+)"
@@ -40,7 +42,7 @@ def upload():
         print(data)
         title = data["items"][0]["snippet"]["title"] + ".mp4"
         thumbnail_url = f'https://img.youtube.com/vi/{match}/sddefault.jpg'
-        return redirect(url_for('result', video_name=title, video_thumbnail=thumbnail_url, url=youtube_link))
+        return jsonify({'video_name': title, 'video_thumbnail': thumbnail_url, 'url': youtube_link})
     elif 'file' in request.files:  # 处理文件上传
         file = request.files['file']
         filename = secure_filename(file.filename)
@@ -60,6 +62,7 @@ def upload():
             thumbnail_path
         ], check=True)
         return jsonify({'video_name': filename, 'video_thumbnail': thumbnail_path, 'url': filepath})
+
 
 # 结果页面
 @app.route('/result')
@@ -90,6 +93,20 @@ def run_code():
 @app.route('/thanks')
 def thanks():
     return render_template('thanks.html')
+
+
+# @ app.route('/audio')
+# def audio():
+#     data = request.json
+#     message = data.get('message')
+#     email = data.get('email')
+#     thread = threading.Thread(target=main, args=(message, email))
+#     thread.start()
+#
+#
+# @app.route('/audio_creator')
+# def audio_creator():
+#     return render_template('only_audio.html')
 
 
 VIDEO_FOLDER = os.path.join(os.getcwd(), 'Video_generated')
