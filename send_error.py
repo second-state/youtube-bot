@@ -7,7 +7,7 @@ def send_error_email(error_message,fileName, email_link):
         "mime": "text/plain",
         "to": "juyichen0413@gmail.com",
         "subject": "youtube_bot 程序错误通知",
-        "message": f"程序运行出错，错误信息：{error_message}\n\n文件地址：{fileName}\n\n接收人：{email_link}"
+        "body": f"程序运行出错，错误信息：{error_message}\n\n文件地址：{fileName}\n\n接收人：{email_link}"
     }
     response = requests.post(url, json=data)
     return response.status_code
