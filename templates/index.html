@@ -166,6 +166,7 @@
         };
 
         xhr.onload = function () {
+            fileInput.value = '';
             if (xhr.status === 200) {
                 const response = JSON.parse(xhr.responseText);
                 const videoName = encodeURIComponent(response.video_name);
@@ -181,6 +182,7 @@
         };
 
         xhr.onerror = function () {
+            fileInput.value = '';
             document.getElementById('progress').style.width = '100%';
             document.getElementById('progress').style.backgroundColor = '#d73232';
             document.getElementById('status').textContent = errorText;
