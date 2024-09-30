@@ -16,13 +16,13 @@
                 document.getElementById('upload-place').innerText = '点击这里上传或拖拽你的文件';
                 document.getElementById('example').innerText = '示例';
             } else if (userLang.startsWith('ja')) {
-                document.getElementById('title').innerText = '英語ビデオに日本語吹き替えを追加する';
+                document.getElementById('title').innerText = 'あなたの言語で任意の動画を吹き替えしてください';
                 document.getElementById('upload-btn').innerText = '次のステップ';
                 document.getElementById('youtube-placeholder').placeholder = 'YouTube リンクをここに貼り付けます';
                 document.getElementById('upload-place').innerText = 'ここをクリックしてファイルをアップロードまたはドラッグアンドドロップします';
                 document.getElementById('example').innerText = '例';
             } else {
-                document.getElementById('title').innerText = 'Dub your video in Chinese';
+                document.getElementById('title').innerText = 'Dub any video in your language';
                 document.getElementById('upload-btn').innerText = 'Next';
                 document.getElementById('youtube-placeholder').placeholder = 'Paste the YouTube link here.';
                 document.getElementById('upload-place').innerText = 'Click to browse or Drop here';
@@ -85,6 +85,7 @@
 
     <div id="drop-area" ondrop="handleFileSelect(event)" ondragover="preventDefaults(event)" ondragleave="leave(event)" onclick="clickDrop()"
          style="cursor: pointer; width: 100%; height: 200px; font-size: 1.5rem;color: #FFFFFF; background: #E8E6E61A; border: 1px dashed #FFFAFAE5; display: flex;flex-direction: column;justify-content: center;align-items: center; text-align: center;">
+        <img id="upload-icon" src="/icon/upload.svg"/>
         <div id="upload-place" style="height: min-content;">Click to browse or Drop here</div>
         <div style="display: flex;align-items: center;justify-content:center;width: 90%;margin-top: 1rem;">
             <div style="display: none;" id="progress-bar">
@@ -149,6 +150,7 @@
 
         const formData = new FormData();
         formData.append('file', file);
+        document.getElementById('upload-icon').style.display = 'none'
         document.getElementById('upload-place').innerText = uploadText
 
         const xhr = new XMLHttpRequest();
