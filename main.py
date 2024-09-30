@@ -150,7 +150,7 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                             system_prompt_script_translator = system_prompt_script_translator_japanese
                         else:
                             system_prompt_script_translator = system_prompt_script_translator_chinese
-                        sentence_translation = openai_gpt_chat(system_prompt_script_translator, sentence)
+                        sentence_translation = openai_gpt_chat(system_prompt_script_translator, sentence, youtube_link, email_link)
                         sentence_translation = sentence_translation.replace('\n', '')
                         while True:
                             if bool(re.search(r'[a-zA-Z]', sentence_translation)):
@@ -170,7 +170,7 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                         print(sentence_translation)
                         translated_text_list.append(f"[{start_time} --> {end_time}]  {sentence_translation}")
                 except Exception as e:
-                    send_error_email(f"step 6: 翻译失败{paragraphs[i]}失败：{i}: {str(e)}", youtube_link, email_link)
+                    send_error_email(f"step 6: 翻译失败{final_transcript[i]}失败：{e}", youtube_link, email_link)
                     print("翻译失败")
                     return
             translated_text = "\n".join(translated_text_list)
@@ -240,7 +240,7 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                 print(response.status_code)
                 print(response.text)
             else:
-                send_error_email(f"step 7/8/9: 调整视频速度、音频生成失败：{e}", youtube_link, email_link)
+                send_error_email(f"step 7/8/9: 调整视频速度、音频生成失败：", youtube_link, email_link)
                 print("中文音频生成失败。")
 
     except Exception as e:

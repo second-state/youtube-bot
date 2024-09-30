@@ -53,7 +53,7 @@ def format_subtitles_with_timestamps(transcript, youtube_link, email_link):
                     temp_sentence = sentence
                     last_end = start_time
         except Exception as e:
-            send_error_email(f"step 5: 合并timestamps——{paragraphs[i]}失败：{i}: {str(e)}", youtube_link, email_link)
+            send_error_email(f"step 5: 合并timestamps——{paragraphs[i]}失败：{i}: {e}", youtube_link, email_link)
             print("合并timestamps失败")
             return
     transcript = "\n".join(final_transcript)

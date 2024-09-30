@@ -3,6 +3,7 @@ import requests
 import json
 
 from dotenv import load_dotenv
+from send_error import send_error_email
 
 load_dotenv()
 
@@ -11,7 +12,7 @@ system_prompt_script_translator_japanese = os.getenv("SYSTEM_PROMPT_SCRIPT_TRANS
 system_prompt_summarizer = os.getenv("SYSTEM_PROMPT_SUMMARIZER")
 
 
-def openai_gpt_chat(system_prompt, prompt):
+def openai_gpt_chat(system_prompt, prompt, youtube_link, email_link):
     url = "https://qwen72b.us.gaianet.network/v1/chat/completions"
 
     payload = json.dumps({
@@ -37,6 +38,7 @@ def openai_gpt_chat(system_prompt, prompt):
         response_data = response.json()
         return response_data['choices'][0]['message']['content']
     except:
+        send_error_email(f"step 6: 请求qwen获取翻译失败——{prompt}", youtube_link, email_link)
         print("Error in getting the response.")
         return
 
