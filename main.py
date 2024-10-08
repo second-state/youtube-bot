@@ -151,9 +151,12 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                         else:
                             system_prompt_script_translator = system_prompt_script_translator_chinese
                         sentence_translation = openai_gpt_chat(system_prompt_script_translator, sentence, youtube_link, email_link)
-                        sentence_translation = sentence_translation.replace('\n', '')
+                        if sentence_translation:
+                            sentence_translation = sentence_translation.replace('\n', '')
+                        else:
+                            sentence_translation = sentence
                         while True:
-                            if not sentence_translation or bool(re.search(r'[a-zA-Z]', sentence_translation)):
+                            if bool(re.search(r'[a-zA-Z]', sentence_translation)):
                                 if language == 'ja':
                                     system_prompt_script_translator_again = f"I tried to translate this content into Japanese: {sentence}, but I found that there is also an English part in it. Can you help me translate it again and make sure it is all translated into Japanese. but keep all proper nouns (like programming languages, brand names, etc.) unchanged. For example, 'I write this code with Rust.' should be translated as 'このコードはRustで書きました。' This is what I translated this time:"
                                 else:
