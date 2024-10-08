@@ -129,8 +129,8 @@ def process_video(mp4_path, original_mp4_path, mp3_path, offset_seconds=5, langu
     delay_in_ms = int(offset_seconds * 1000)
     filter_complex = (
         f"[0:v]setpts=PTS/{speed_factor}[v];"
-        f"[0:a]{atempo_filters},volume=0.05[a1];"
-        f"[1:a]adelay={delay_in_ms}|{delay_in_ms},volume=1.2[a2];"
+        f"[0:a]pan=stereo|c0=c0-c1|c1=c1-c0,{atempo_filters},volume=0.05[a1];"
+        f"[1:a]adelay={delay_in_ms}|{delay_in_ms},volume=1.5[a2];"
         f"[a1][a2]amix=inputs=2:duration=longest[a]"
     )
     command = [

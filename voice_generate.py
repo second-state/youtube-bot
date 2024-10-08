@@ -93,14 +93,15 @@ def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_sec
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     temp_dir = "temp_" + timestamp
     os.makedirs(temp_dir, exist_ok=True)
+    fix_video = os.path.splitext(dst_video)[0] + "_fix.mp4"
     # 生成临时音频文件
     temp_files = []
     split_list = []
-    for i, paragraph in enumerate(paragraphs):
-        temp_file = os.path.join(temp_dir, f"temp_{i}.mp3")
-        pattern = r'\[(\d{2}:\d{2}:\d{2}\.\d{3}) --> (\d{2}:\d{2}:\d{2}\.\d{3})\]\s*(.*)'
-        # 查找匹配的部分
-        try:
+    try:
+        for i, paragraph in enumerate(paragraphs):
+            temp_file = os.path.join(temp_dir, f"temp_{i}.mp3")
+            pattern = r'\[(\d{2}:\d{2}:\d{2}\.\d{3}) --> (\d{2}:\d{2}:\d{2}\.\d{3})\]\s*(.*)'
+            # 查找匹配的部分
             match = re.match(pattern, paragraph)
             print(match.group(3))
             if match and match.group(3) and not match.group(3).startswith(("[", "{")):
@@ -149,22 +150,21 @@ def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_sec
                             silence_file
                         ], check=True)
                         temp_files.append(silence_file)
-        except Exception as e:
-            send_error_email(f"step 7: 生成音频{paragraphs[i]}失败：{i}: {str(e)}", youtube_link, email_link)
-            print("生成音频失败")
-            return
+    except Exception as e:
+        send_error_email(f"step 7: 生成音频{paragraphs[i]}失败：{i}: {str(e)}", youtube_link, email_link)
+        print("生成音频失败")
+        return
 
     temp_videos = []
     last_end_time = "00:00:00.000"  # 初始时间，从视频开始
 
-    # 遍历所有的片段
-    for i, segment in enumerate(split_list):
-        start_time = segment['start_time']
-        end_time = segment['end_time']
-        speed_factor = segment['speed_factor']
+    try:
+        # 遍历所有的片段
+        for i, segment in enumerate(split_list):
+            start_time = segment['start_time']
+            end_time = segment['end_time']
+            speed_factor = segment['speed_factor']
 
-        # 处理不需要改变速度的部分（上一段结束到当前片段开始）
-        try:
             if last_end_time < start_time:
                 # 提取中间不需要调整速度的片段
                 temp_filename = f"{temp_dir}/part_no_change_{i}.mp4"
@@ -175,7 +175,7 @@ def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_sec
                     "-reset_timestamps", "1", temp_filename
                 ])
 
-            # 提取需要调整速度的片段
+                # 提取需要调整速度的片段
             temp_filename = f"{temp_dir}/part_slow_{i}.mp4"
             temp_videos.append(temp_filename)
             subprocess.run([
@@ -191,34 +191,35 @@ def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_sec
             last_end_time = end_time
 
             # 处理最后一个片段之后剩余的视频部分
-            final_filename = f"{temp_dir}/final_part.mp4"
-            temp_videos.append(final_filename)
-            subprocess.run([
-                "ffmpeg", "-i", dst_video, "-ss", last_end_time,
-                "-r", "30", "-c:v", "libx264", "-preset", "fast", "-crf", "23",
-                "-reset_timestamps", "1", final_filename
-            ])
+        final_filename = f"{temp_dir}/final_part.mp4"
+        temp_videos.append(final_filename)
+        subprocess.run([
+            "ffmpeg", "-i", dst_video, "-ss", last_end_time,
+            "-r", "30", "-c:v", "libx264", "-preset", "fast", "-crf", "23",
+            "-reset_timestamps", "1", final_filename
+        ])
+        # 创建文件列表以合并视频
+        with open(f"{temp_dir}/filelist.txt", "w") as f:
+            for video in temp_videos:
+                f.write(f"file '{os.path.abspath(video)}'\n")
+    except Exception as e:
+        send_error_email(f"step 8: 调整视频速度失败: {e}", youtube_link, email_link)
+        print("调整视频速度失败")
+        return
 
-            # 创建文件列表以合并视频
-            with open(f"{temp_dir}/filelist.txt", "w") as f:
-                for video in temp_videos:
-                    f.write(f"file '{os.path.abspath(video)}'\n")
+    try:
+        # 合并所有片段
+        subprocess.run([
+            "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", f"{temp_dir}/filelist.txt",
+            "-c:v", "libx264", "-preset", "fast", "-crf", "23",
+            "-c:a", "aac", "-ar", "44100", "-ac", "2", "-strict", "experimental", fix_video
+        ])
+    except Exception as e:
+        send_error_email(f"step 8: 合并调速视频失败: {e}", youtube_link, email_link)
+        print("合并调速视频失败")
+        return
 
-            print(os.path.splitext(dst_video)[0])
-            fix_video = os.path.splitext(dst_video)[0] + "_fix.mp4"
-            print(fix_video)
-            # 合并所有片段
-            subprocess.run([
-                "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", f"{temp_dir}/filelist.txt",
-                "-c:v", "libx264", "-preset", "fast", "-crf", "23",
-                "-c:a", "aac", "-ar", "44100", "-ac", "2", "-strict", "experimental", fix_video
-            ])
-        except Exception as e:
-            send_error_email(f"step 8: 调整视频速度——{split_list[i]}失败：{i}: {str(e)}", youtube_link, email_link)
-            print("调整视频速度失败")
-            return
-
-# 合并临时文件
+    # 合并临时文件
     ffmpeg_command = [
         "ffmpeg",
         "-y",

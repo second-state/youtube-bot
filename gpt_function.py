@@ -37,9 +37,9 @@ def openai_gpt_chat(system_prompt, prompt, youtube_link, email_link):
     try:
         response_data = response.json()
         return response_data['choices'][0]['message']['content']
-    except:
-        send_error_email(f"step 6: 请求qwen获取翻译失败——{prompt}", youtube_link, email_link)
-        print("Error in getting the response.")
+    except Exception as e:
+        send_error_email(f"step 6: 请求qwen获取翻译失败——{prompt}:{e}", youtube_link, email_link)
+        print(f"Error in getting the response.{e}")
         return
 
 

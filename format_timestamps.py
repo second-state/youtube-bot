@@ -21,7 +21,7 @@ def format_subtitles_with_timestamps(transcript, youtube_link, email_link):
                     last_end = ""
                 end_time = match.group(2)
                 sentence = match.group(3).strip()
-                sentence = re.sub(r'[^，。！？!?,.a-zA-Z0-9\u4e00-\u9fa5\uAC00-\uD7AF\u3040-\u30FF]', ' ', sentence)
+                sentence = re.sub(r'[^，。！？!?,.\'a-zA-Z0-9\u4e00-\u9fa5\uAC00-\uD7AF\u3040-\u30FF]', ' ', sentence)
                 # 合并一个总和的，给ai用
                 total = total + " " + sentence
                 # 如果有没完成的数据，和这一句拼起来
@@ -45,9 +45,8 @@ def format_subtitles_with_timestamps(transcript, youtube_link, email_link):
                             this_text_length = len(item)
                             value_to_add = time_difference.total_seconds() * this_text_length / total_text_length
                             new_timestamps = start_timestamps + timedelta(seconds=value_to_add)
-                            new_end_time = new_timestamps.strftime(time_format)
+                            new_end_time = new_timestamps.strftime(time_format)[:-3]
                             final_transcript.append(f"[{start_time} --> {new_end_time}]  {item}")
-                            start_time = new_end_time
                             last_end = new_end_time
                 else:
                     temp_sentence = sentence
