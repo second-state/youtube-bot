@@ -1,4 +1,4 @@
-from Celery import Celery
+from celery import Celery
 from flask import Flask
 
 # 初始化 Flask 应用
@@ -12,7 +12,7 @@ def make_celery(app):
         backend='rpc://'
     )
 
-    celery.conf.update(app.config)
+    c.conf.update(app.config)
     return c
 
-celery = make_celery(app)
+celery_app = make_celery(app)
