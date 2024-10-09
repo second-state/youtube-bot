@@ -1,4 +1,4 @@
-from celery import Celery
+from Celery import Celery
 from flask import Flask
 
 # 初始化 Flask 应用
