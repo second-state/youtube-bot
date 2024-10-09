@@ -178,10 +178,11 @@ def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_sec
                 # 提取需要调整速度的片段
             temp_filename = f"{temp_dir}/part_slow_{i}.mp4"
             temp_videos.append(temp_filename)
+            atempo_filters = get_atempo_filters(1/speed_factor)
             subprocess.run([
                 "ffmpeg", "-ss", start_time, "-to", end_time, "-i", dst_video,  # 移动 -ss 和 -to 到 -i 之前
                 "-filter:v", f"setpts={speed_factor}*PTS",  # 调整视频速度滤镜
-                "-filter:a", f"atempo={1/speed_factor}",  # 调整音频速度滤镜
+                "-filter:a", atempo_filters,  # 调整音频速度滤镜
                 "-r", "30",  # 设置帧率在滤镜之后
                 "-c:v", "libx264", "-preset", "fast", "-crf", "23", "-reset_timestamps", "1",
                 temp_filename

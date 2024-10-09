@@ -1,19 +1,19 @@
 import os
 import requests
 import json
-
+# from openai import OpenAI
 from dotenv import load_dotenv
 from send_error import send_error_email
 
 load_dotenv()
-
+# client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 system_prompt_script_translator_chinese = os.getenv("SYSTEM_PROMPT_SCRIPT_TRANSLATOR_CHINESE")
 system_prompt_script_translator_japanese = os.getenv("SYSTEM_PROMPT_SCRIPT_TRANSLATOR_JAPANESE")
 system_prompt_summarizer = os.getenv("SYSTEM_PROMPT_SUMMARIZER")
 
 
 def openai_gpt_chat(system_prompt, prompt, youtube_link, email_link):
-    url = "https://qwen72b.us.gaianet.network/v1/chat/completions"
+    node_list = ['qwen72b', 'llama', 'phi', 'gemma']
 
     payload = json.dumps({
         "messages": [
@@ -32,16 +32,41 @@ def openai_gpt_chat(system_prompt, prompt, youtube_link, email_link):
         'Content-Type': 'application/json'
     }
 
-    response = requests.request("POST", url, headers=headers, data=payload)
+    max_retries = 8
+    attempt = 0
 
-    try:
-        response_data = response.json()
-        return response_data['choices'][0]['message']['content']
-    except Exception as e:
-        send_error_email(f"step 6: 请求qwen获取翻译失败——{prompt}:{e}", youtube_link, email_link)
-        print(f"Error in getting the response.{e}")
-        return
+    while attempt < max_retries:
+        time = attempt // 2
+        path = attempt % 2
+        attempt += 1
+        try:
+            url = f"https://{node_list[time]}.us.gaianet.network/v1/chat/completions"
+            response = requests.post(url, headers=headers, data=payload)
+            response.raise_for_status()  # 检查HTTP错误
+            response_data = response.json()
+            return response_data['choices'][0]['message']['content']
+        except requests.exceptions.RequestException as e:
+            # send_error_email(f"step 6: 请求{node_list[time]}获取翻译失败——{prompt}:{e}", youtube_link, email_link)
+            print(f"Attempt {attempt} failed for {node_list[time]}. Error: {e}")
+            if path == 0:
+                retry_delay = 3
+            else:
+                retry_delay = 0
+            time.sleep(retry_delay)  # 等待一段时间后重试
 
+    send_error_email(f"step 6: 多node获取翻译失败——{prompt}:", youtube_link, email_link)
+    return
+    # completion = client.chat.completions.create(
+    #     model="gpt-4o",
+    #     messages=[
+    #         {"role": "system", "content": system_prompt},
+    #         {"role": "user", "content": prompt}
+    #     ]
+    # )
+    # try: return completion.choices[0].message.content
+    # except:
+    #     print("Error in getting the response.")
+    #     return
 
 def get_transcript(audio_file_path):
     print(f"正在通过音频文件转录英文脚本")

@@ -6,11 +6,13 @@ import threading
 import time
 from flask import Flask, render_template, jsonify, request, redirect, url_for, send_from_directory
 from werkzeug.utils import secure_filename
+from celery_local import make_celery
 
 from main import main
 # from audio import create_audio_only
 
 app = Flask(__name__)
+celery = make_celery(app)
 UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 YOUTUBE_V3_KEY = os.getenv("YOUTUBE_V3_KEY")
@@ -82,9 +84,7 @@ def run_code():
     language = request.form.get('language')
     with_srt = 2
 
-    # 将数据传递给 main 方法
-    thread = threading.Thread(target=main, args=(second, youtube_link, email_link, sound_id, language, with_srt))
-    thread.start()
+    main.delay(second, youtube_link, email_link, sound_id, language, with_srt)
 
     # 跳转到 thanks 页面
     return redirect(url_for('thanks'))

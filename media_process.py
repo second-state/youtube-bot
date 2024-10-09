@@ -139,30 +139,40 @@ def process_video(mp4_path, original_mp4_path, mp3_path, offset_seconds=5, langu
         "-map", "[v]", "-map", "[a]", output_video_filename
     ]
 
-    if language== 'zh':
-        font_name = "汉呈正文宋体"
-    else:
-        font_name = "PopRumKiwi Telop"
+    add_srt_command = []
 
-    add_srt_command = [
-        "ffmpeg", "-y", "-i", original_mp4_path,
-        "-vf", f"subtitles={srt_file}:force_style='FontName={font_name},Alignment=2,MaxLineLength=30'", output_srt_filename
-    ]
+    if with_srt != 0:
+        if language == 'zh':
+            font_name = "汉呈正文宋体"
+        else:
+            font_name = "PopRumKiwi Telop"
+
+        add_srt_command = [
+            "ffmpeg", "-y", "-i", original_mp4_path,
+            "-vf", f"subtitles={srt_file}:force_style='FontName={font_name},Alignment=2,MaxLineLength=30'", output_srt_filename
+        ]
 
     # Step 7: Execute ffmpeg command
     try:
         subprocess.run(command, check=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-        subprocess.run(add_srt_command, check=True)
+        if with_srt != 0:
+            subprocess.run(add_srt_command, check=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
     except subprocess.CalledProcessError as e:
         print(f"Error during ffmpeg processing: {e.stderr.decode('utf-8')}")
         sys.exit(1)
 
     # Step 8: Output file saved, print filename
-    print(f"Output file: {output_video_filename}, {output_srt_filename}")
-    return {
-        "output_video_filename": output_video_filename,
-        "output_srt_filename": output_srt_filename
-    }
+    if with_srt != 0:
+        print(f"Output file: {output_video_filename}, {output_srt_filename}")
+        return {
+            "output_video_filename": output_video_filename,
+            "output_srt_filename": output_srt_filename
+        }
+    else:
+        print(f"Output file: {output_video_filename}")
+        return {
+            "output_video_filename": output_video_filename
+        }
 
 
 def get_atempo_filters(speed_factor):

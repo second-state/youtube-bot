@@ -12,7 +12,7 @@ load_dotenv()
 
 DOMAIN = os.getenv("DOMAIN")
 
-
+@celery.task
 def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", email_link="juyichen0413@gmail.com",
          sound_id="59cb5986671546eaa6ca8ae6f29f6d22", language="zh", with_srt=0):
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
@@ -156,7 +156,7 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                             sentence_translation = sentence_translation.replace('\n', '')
                         else:
                             sentence_translation = sentence
-                        max_attempts = 5  # 最大尝试次数
+                        max_attempts = 4  # 最大尝试次数
                         attempts = 0  # 当前尝试次数
                         while attempts < max_attempts:
                             attempts += 1
