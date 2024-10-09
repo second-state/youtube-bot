@@ -6,13 +6,11 @@ import threading
 import time
 from flask import Flask, render_template, jsonify, request, redirect, url_for, send_from_directory
 from werkzeug.utils import secure_filename
-from celery_local import make_celery
 
 from main import main
 # from audio import create_audio_only
 
 app = Flask(__name__)
-celery = make_celery(app)
 UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 YOUTUBE_V3_KEY = os.getenv("YOUTUBE_V3_KEY")
