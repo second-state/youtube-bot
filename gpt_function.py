@@ -36,18 +36,17 @@ def openai_gpt_chat(system_prompt, prompt, youtube_link, email_link):
     attempt = 0
 
     while attempt < max_retries:
-        time = attempt // 2
+        num = attempt // 2
         path = attempt % 2
         attempt += 1
         try:
-            url = f"https://{node_list[time]}.us.gaianet.network/v1/chat/completions"
+            url = f"https://{node_list[num]}.us.gaianet.network/v1/chat/completions"
             response = requests.post(url, headers=headers, data=payload)
             response.raise_for_status()  # 检查HTTP错误
             response_data = response.json()
             return response_data['choices'][0]['message']['content']
         except requests.exceptions.RequestException as e:
-            # send_error_email(f"step 6: 请求{node_list[time]}获取翻译失败——{prompt}:{e}", youtube_link, email_link)
-            print(f"Attempt {attempt} failed for {node_list[time]}. Error: {e}")
+            print(f"Attempt {attempt} failed for {node_list[num]}. Error: {e}")
             if path == 0:
                 retry_delay = 3
             else:
