@@ -4,6 +4,7 @@ import requests
 import subprocess
 import threading
 import time
+from celery_local import celery
 from flask import Flask, render_template, jsonify, request, redirect, url_for, send_from_directory
 from werkzeug.utils import secure_filename
 

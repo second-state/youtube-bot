@@ -15,4 +15,4 @@ def make_celery(app):
     c.conf.update(app.config)
     return c
 
-celery_app = make_celery(app)
+celery = make_celery(app)

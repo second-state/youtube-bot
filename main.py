@@ -4,7 +4,7 @@ import requests
 import subprocess
 import time
 from datetime import datetime
-from celery_local import celery_app
+from celery_local import celery
 
 from format_timestamps import *
 from voice_generate import *
@@ -13,7 +13,7 @@ load_dotenv()
 
 DOMAIN = os.getenv("DOMAIN")
 
-@celery_app.task
+@celery.task
 def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", email_link="juyichen0413@gmail.com",
          sound_id="59cb5986671546eaa6ca8ae6f29f6d22", language="zh", with_srt=0):
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
