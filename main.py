@@ -4,6 +4,7 @@ import requests
 import subprocess
 import time
 from datetime import datetime
+from webServer import celery
 
 from format_timestamps import *
 from voice_generate import *
