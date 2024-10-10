@@ -27,9 +27,9 @@ def format_subtitles_with_timestamps(transcript, youtube_link, email_link):
                 # 如果有没完成的数据，和这一句拼起来
                 if temp_sentence:
                     sentence = temp_sentence + " " + sentence
+                    temp_sentence = ""
                 if sentence.endswith(".") or sentence.endswith("!") or sentence.endswith("?") or (i + 1) == len(paragraphs):
                     last_end = end_time
-                    temp_sentence = ""
                     final_transcript.append(f"[{start_time} --> {end_time}]  {sentence}")
                 elif '.' in sentence:
                     # 计算时间差
