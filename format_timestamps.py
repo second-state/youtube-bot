@@ -27,6 +27,7 @@ def format_subtitles_with_timestamps(transcript, youtube_link, email_link):
                 # 如果有没完成的数据，和这一句拼起来
                 if temp_sentence:
                     sentence = temp_sentence + " " + sentence
+                    sentence = sentence.strip()
                     temp_sentence = ""
                 if sentence.endswith(".") or sentence.endswith("!") or sentence.endswith("?") or (i + 1) == len(paragraphs):
                     last_end = end_time
@@ -48,6 +49,8 @@ def format_subtitles_with_timestamps(transcript, youtube_link, email_link):
                             new_end_time = new_timestamps.strftime(time_format)[:-3]
                             final_transcript.append(f"[{start_time} --> {new_end_time}]  {item}")
                             last_end = new_end_time
+                        else:
+                            temp_sentence = item
                 else:
                     temp_sentence = sentence
                     last_end = start_time
@@ -56,7 +59,6 @@ def format_subtitles_with_timestamps(transcript, youtube_link, email_link):
             print("合并timestamps失败")
             return
     transcript = "\n".join(final_transcript)
-    print(final_transcript)
     return {
         "total": total,
         "transcript": transcript,
