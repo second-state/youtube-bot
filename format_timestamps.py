@@ -16,9 +16,6 @@ def format_subtitles_with_timestamps(transcript, youtube_link, email_link):
             # 如果这一句话没有内容，或者以[ or { or (开头，多半代表着这段话里有不正确的内容，就刨除掉这段话
             if match and match.group(3) and not match.group(3).startswith(("[", "{", "(")):
                 start_time = match.group(1)
-                if last_end:
-                    start_time = last_end
-                    last_end = ""
                 end_time = match.group(2)
                 sentence = match.group(3).strip()
                 sentence = re.sub(r'[^，。！？!?,.\'a-zA-Z0-9\u4e00-\u9fa5\uAC00-\uD7AF\u3040-\u30FF]', ' ', sentence)
@@ -26,10 +23,17 @@ def format_subtitles_with_timestamps(transcript, youtube_link, email_link):
                 total = total + " " + sentence
                 # 如果有没完成的数据，和这一句拼起来
                 if temp_sentence:
-                    sentence = temp_sentence + " " + sentence
-                    sentence = sentence.strip()
-                    temp_sentence = ""
-                if sentence.endswith(".") or sentence.endswith("!") or sentence.endswith("?") or (i + 1) == len(paragraphs):
+                    if sentence and sentence[0].isupper():
+                        final_transcript.append(f"[{last_end} --> {start_time}]  {temp_sentence}")
+                        last_end = ""
+                    else:
+                        if last_end:
+                            start_time = last_end
+                        last_end = ""
+                        sentence = temp_sentence + " " + sentence
+                        sentence = sentence.strip()
+                        temp_sentence = ""
+                if sentence.endswith(".") or sentence.endswith("!") or sentence.endswith("?"):
                     last_end = end_time
                     final_transcript.append(f"[{start_time} --> {end_time}]  {sentence}")
                 elif '.' in sentence:
@@ -49,8 +53,12 @@ def format_subtitles_with_timestamps(transcript, youtube_link, email_link):
                             new_end_time = new_timestamps.strftime(time_format)[:-3]
                             final_transcript.append(f"[{start_time} --> {new_end_time}]  {item}")
                             last_end = new_end_time
+                        elif i + 1 == len(paragraphs):
+                            final_transcript.append(f"[{start_time} --> {end_time}]  {item}")
                         else:
                             temp_sentence = item
+                elif i + 1 == len(paragraphs):
+                    final_transcript.append(f"[{start_time} --> {end_time}]  {sentence}")
                 else:
                     temp_sentence = sentence
                     last_end = start_time
