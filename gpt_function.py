@@ -1,19 +1,35 @@
+import re
 import os
 import requests
 import json
 import time
-# from openai import OpenAI
+from openai import OpenAI
 from dotenv import load_dotenv
 from send_error import send_error_email
 
 load_dotenv()
-# client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 system_prompt_script_translator_chinese = os.getenv("SYSTEM_PROMPT_SCRIPT_TRANSLATOR_CHINESE")
 system_prompt_script_translator_japanese = os.getenv("SYSTEM_PROMPT_SCRIPT_TRANSLATOR_JAPANESE")
 system_prompt_summarizer = os.getenv("SYSTEM_PROMPT_SUMMARIZER")
 
 
 def openai_gpt_chat(system_prompt, prompt, youtube_link, email_link):
+    completion = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": prompt}
+        ]
+    )
+    try:
+        return completion.choices[0].message.content
+    except:
+        send_error_email(f"step 6: openai获取翻译失败——{prompt}:", youtube_link, email_link)
+        print("Error in getting the response.")
+        return gaia_gpt_chat(system_prompt, prompt, youtube_link, email_link)
+
+def gaia_gpt_chat(system_prompt, prompt, youtube_link, email_link):
     node_list = ['qwen72b', 'llama', 'phi', 'gemma']
 
     payload = json.dumps({
@@ -45,7 +61,8 @@ def openai_gpt_chat(system_prompt, prompt, youtube_link, email_link):
             response = requests.post(url, headers=headers, data=payload)
             response.raise_for_status()  # 检查HTTP错误
             response_data = response.json()
-            return response_data['choices'][0]['message']['content']
+            translation_data = response_data['choices'][0]['message']['content']
+            return re.sub(r'^\.[a-zA-Z]+', '', translation_data).strip()
         except requests.exceptions.RequestException as e:
             print(f"Attempt {attempt} failed for {node_list[num]}. Error: {e}")
             if path == 0:

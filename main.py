@@ -147,12 +147,12 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                     if match:
                         start_time = match.group(1)
                         end_time = match.group(2)
-                        sentence = match.group(3)
+                        sentence = match.group(3).strip()
                         if language == 'ja':
                             system_prompt_script_translator = system_prompt_script_translator_japanese
                         else:
                             system_prompt_script_translator = system_prompt_script_translator_chinese
-                        sentence_translation = openai_gpt_chat(system_prompt_script_translator, sentence, youtube_link, email_link)
+                        sentence_translation = gaia_gpt_chat(system_prompt_script_translator, sentence, youtube_link, email_link)
                         if sentence_translation:
                             sentence_translation = sentence_translation.replace('\n', '')
                         else:
@@ -163,9 +163,9 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                             attempts += 1
                             if bool(re.search(r'[a-zA-Z]', sentence_translation)):
                                 if language == 'ja':
-                                    system_prompt_script_translator_again = f"I tried to translate this content into Japanese: {sentence}.\n\nBut I found that there is also an English part in it. Can you help me translate it again and make sure it is all translated into Japanese. Aiming for naturalness, and try to make it sound like a native Japanese speaker. Only provide the Chinese part of the translation. Keep all proper nouns (like programming languages, brand names, etc.) unchanged. For example, 'I write this code with Rust.' should be translated as 'このコードはRustで書きました。' This is what I translated this time:"
+                                    system_prompt_script_translator_again = f"You are a professional transcript translator. Translate AI-generated video transcripts into Japanese, ensuring the translation sounds like natural spoken language. The original text is: {sentence}. Please exclude proper nouns and translate all other content directly into Japanese. Output the translation without any additional text before or after."
                                 else:
-                                    system_prompt_script_translator_again = f"I tried to translate this content into Chinese: {sentence}.\n\nBut I found that there is also an English part in it. Can you help me translate it again and make sure it is all translated into Chinese. Aiming for naturalness, and try to make it sound like a native Chinese speaker. Only provide the Chinese part of the translation. Keep all proper nouns (like programming languages, brand names, etc.) unchanged. For example, 'I write this code with Rust.' should be translated as '我用 Rust 编写这段代码.' This is what I translated this time:"
+                                    system_prompt_script_translator_again = f"You are a professional transcript translator. Translate AI-generated video transcripts into Chinese, ensuring the translation sounds like natural spoken language. The original text is: {sentence}. Please exclude proper nouns and translate all other content directly into Chinese. Output the translation without any additional text before or after."
                                 time.sleep(3)
                                 new_translation = openai_gpt_chat(
                                     system_prompt_script_translator_again,
