@@ -25,14 +25,13 @@ def format_subtitles_with_timestamps(transcript, youtube_link, email_link):
                 if temp_sentence:
                     if sentence and sentence[0].isupper():
                         final_transcript.append(f"[{last_end} --> {start_time}]  {temp_sentence}")
-                        last_end = ""
                     else:
                         if last_end:
                             start_time = last_end
-                        last_end = ""
                         sentence = temp_sentence + " " + sentence
                         sentence = sentence.strip()
-                        temp_sentence = ""
+                    temp_sentence = ""
+                    last_end = ""
                 if sentence.endswith(".") or sentence.endswith("!") or sentence.endswith("?"):
                     last_end = end_time
                     final_transcript.append(f"[{start_time} --> {end_time}]  {sentence}")
