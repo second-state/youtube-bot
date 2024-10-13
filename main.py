@@ -206,10 +206,10 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                         max_attempts = 4  # 最大尝试次数
                         attempts = 0  # 当前尝试次数
                         while attempts < max_attempts:
-                            if attempts == 0:
-                                this_sentence = sentence
-                            else:
-                                this_sentence = sentence_translation
+                            # if attempts == 0:
+                            this_sentence = sentence
+                            # else:
+                            #     this_sentence = sentence_translation
                             attempts += 1
                             if bool(re.match(transcript_pattern, sentence_translation)):
                                 time.sleep(3)
