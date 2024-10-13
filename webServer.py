@@ -89,7 +89,7 @@ def run_code():
     return redirect(url_for('thanks'))
 
 @app.route('/runCodeByUrl', methods=['POST'])
-def run_code():
+def run_code_by_url():
     second = request.form.get('second')
     youtube_link = request.form.get('youtube_link')
     email_link = request.form.get('email_link')

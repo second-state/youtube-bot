@@ -4,17 +4,17 @@ import requests
 import subprocess
 import time
 from datetime import datetime, timedelta
-from celery_local import celery
 from moviepy.editor import AudioFileClip
-
 from yt_dlp import YoutubeDL
 
+from celery_local import celery
 from format_timestamps import *
 from voice_generate import *
 
 load_dotenv()
 
 DOMAIN = os.getenv("DOMAIN")
+
 
 @celery.task
 def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", email_link="juyichen0413@gmail.com",
@@ -193,9 +193,12 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                         sentence = match.group(3).strip()
                         if language == 'ja':
                             system_prompt_script_translator = system_prompt_script_translator_japanese
+                            transcript_pattern = r'^[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]+$'
                         else:
                             system_prompt_script_translator = system_prompt_script_translator_chinese
-                        sentence_translation = gaia_gpt_chat(system_prompt_script_translator, sentence, youtube_link, email_link)
+                            transcript_pattern = r'^[\u3040-\u309f\u30a0-\u30ff\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]+$'
+                        sentence_translation = gaia_gpt_chat(system_prompt_script_translator, sentence, youtube_link,
+                                                             email_link)
                         if sentence_translation:
                             sentence_translation = sentence_translation.replace('\n', '')
                         else:
@@ -203,12 +206,16 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                         max_attempts = 4  # 最大尝试次数
                         attempts = 0  # 当前尝试次数
                         while attempts < max_attempts:
+                            if attempts == 0:
+                                this_sentence = sentence
+                            else:
+                                this_sentence = sentence_translation
                             attempts += 1
-                            if bool(re.search(r'[a-zA-Z\n ]', sentence_translation)):
+                            if bool(re.match(transcript_pattern, sentence_translation)):
                                 time.sleep(3)
                                 new_translation = openai_gpt_chat(
                                     system_prompt_script_translator,
-                                    sentence, youtube_link, email_link)
+                                    this_sentence, youtube_link, email_link)
                                 new_translation = new_translation.replace('\n', '')
                                 if new_translation == sentence_translation:
                                     break
