@@ -88,6 +88,27 @@ def run_code():
     # 跳转到 thanks 页面
     return redirect(url_for('thanks'))
 
+@app.route('/runCodeByUrl', methods=['POST'])
+def run_code():
+    second = request.form.get('second')
+    youtube_link = request.form.get('youtube_link')
+    email_link = request.form.get('email_link')
+    sound_id = request.form.get('soundId')
+    language = request.form.get('language')
+    with_srt = 2
+
+    main.delay(second, youtube_link, email_link, sound_id, language, with_srt)
+
+    message = ""
+    if language == "zh":
+        message = "我们会将翻译好的视频发送到您的邮箱"
+    elif language == "ja":
+        message = "翻訳されたビデオをメールに送信します"
+    else:
+        message = "We will send the translated video to your email in several minutes"
+
+    return message
+
 
 @app.route('/thanks')
 def thanks():
