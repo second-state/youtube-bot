@@ -3,8 +3,11 @@ import re
 import requests
 import subprocess
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from celery_local import celery
+from moviepy.editor import AudioFileClip
+
+from yt_dlp import YoutubeDL
 
 from format_timestamps import *
 from voice_generate import *
@@ -46,19 +49,31 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
     # 判断用户输入的是一个 Https 链接还是一个绝对文件名路径，如果是文件名路径，则将文件直接移动到 video_temp_dir 目录下，如果是 Https 链接，则使用 yt-dlp 下载视频
     if youtube_link.lower().startswith('http'):
         # yt-dlp 下载命令
-        command = [
-            'yt-dlp',
-            '--cookies',
-            'cookies-all.txt',
-            '--rm-cache-dir',  # 清除缓存
-            '--restrict-filenames',  # 限制文件名字符，避免特殊字符
-            '-f',
-            'bestvideo+bestaudio/best',
-            '--merge-output-format', 'mp4',
-            '-o',
-            os.path.join(video_temp_dir, '%(title)s.%(ext)s'),
-            youtube_link
-        ]
+        ydl_opts = {
+            'format': 'bestvideo+bestaudio/best',
+            'outtmpl': f'{video_temp_dir}/%(title)s.%(ext)s',
+            'noplaylist': True,
+            'writethumbnail': True,
+            'postprocessors': [{
+                'key': 'FFmpegThumbnailsConvertor',
+                'format': 'jpg',
+            }],
+        }
+        with YoutubeDL(ydl_opts) as ydl:
+            ydl.download([youtube_link])
+        # command = [
+        #     'yt-dlp',
+        #     '--cookies',
+        #     'cookies-all.txt',
+        #     '--rm-cache-dir',  # 清除缓存
+        #     '--restrict-filenames',  # 限制文件名字符，避免特殊字符
+        #     '-f',
+        #     'bestvideo+bestaudio/best',
+        #     '--merge-output-format', 'mp4',
+        #     '-o',
+        #     os.path.join(video_temp_dir, '%(title)s.%(ext)s'),
+        #     youtube_link
+        # ]
         try:
             subprocess.run(command, check=True)
         except subprocess.CalledProcessError as e:
@@ -103,30 +118,58 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                     continue  # 跳过此文件，继续下一个
 
             # 在此处调用提取音频的功能
-            audio_file = split_audio_from_mp4(src, email_link, output_audio_format='wav')
+            audio_files = split_audio_from_mp4(src, email_link, output_audio_format='wav')
 
             # 移动 mp4 文件到目标目录
             dst_video = os.path.join(video_downloaded_dir, os.path.basename(src))
             shutil.move(src, dst_video)
 
+            transcript = ""
             # 如果音频提取成功，移动音频文件到目标目录，并删除源文件；如果音频文件不存在，则退出程序并告知用户
-            if audio_file:
-                dst_audio = os.path.join(video_downloaded_dir, os.path.basename(audio_file))
-                shutil.move(audio_file, dst_audio)
-                print(f"音频已提取并保存为 {dst_audio}")
+            if audio_files:
+                last_time = 0
+                for index, audio_file in enumerate(audio_files):
+                    dst_audio = os.path.join(video_downloaded_dir, os.path.basename(audio_file))
+                    shutil.move(audio_file, dst_audio)
+                    # 通过 get_transcript 函数获取音频文件的转录文本
+                    try:
+                        result = get_transcript_with_timestamps(dst_audio)
+                        this_text = result["text"]
+                        final_text_list = []
+                        paragraphs = this_text.split("\n")
+                        for i, paragraph in enumerate(paragraphs):
+                            pattern = r'\[(\d{2}:\d{2}:\d{2}\.\d{3}) --> (\d{2}:\d{2}:\d{2}\.\d{3})\]\s*(.*)'
+                            time_format = "%H:%M:%S.%f"
+                            match = re.match(pattern, paragraph)
+                            # 如果这一句话没有内容，或者以[ or { or (开头，多半代表着这段话里有不正确的内容，就刨除掉这段话
+                            if match and match.group(3):
+                                start_time = match.group(1)
+                                end_time = match.group(2)
+                                sentence = match.group(3).strip()
+                                start_time = datetime.strptime(start_time, time_format)
+                                end_time = datetime.strptime(end_time, time_format)
+                                audio_duration_delta = timedelta(seconds=last_time)
+                                start_time += audio_duration_delta
+                                end_time += audio_duration_delta
+                                start_time = start_time.strftime(time_format)[:-3]  # 去掉微秒部分后面的3位
+                                end_time = end_time.strftime(time_format)[:-3]
+                                final_text_list.append(f"[{start_time} --> {end_time}]  {sentence}")
+                        this_text = "\n".join(final_text_list)
+                        with AudioFileClip(dst_audio) as audio:
+                            last_time += audio.duration
+                        if transcript:
+                            transcript += "\n"
+                        transcript += this_text
+                    except Exception as e:
+                        send_error_email(f"step 4: whisper请求报错：{e}", youtube_link, email_link)
+                        print("whisper报错")
+                        return
+                print(f"音频已提取并保存")
             else:
                 send_error_email(f"step 3: 音频提取失败，split_audio_from_mp4返回空", youtube_link, email_link)
                 print("音频提取失败，已退出程序。")
                 return
             print("下载成功，视频已转换为 mp4，音频已提取，并移动到 Video_downloaded 目录。")
-            # 通过 get_transcript 函数获取音频文件的转录文本
-            try:
-                result = get_transcript_with_timestamps(dst_audio)
-                transcript = result["text"]
-            except Exception as e:
-                send_error_email(f"step 4: whisper请求报错：{e}", youtube_link, email_link)
-                print("whisper报错")
-                return
             print("音频转录文本：")
             print(transcript)
             print("合并成完整句子：")
@@ -134,7 +177,7 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
             transcript = format_data["transcript"]
             final_transcript = format_data["final_transcript"]
             # 将 transcript 保存为 txt 文件，文件名为音频文件名 + _en.txt 后缀
-            transcript_file = os.path.splitext(dst_audio)[0] + "_en.txt"
+            transcript_file = os.path.splitext(dst_video)[0] + "_en.txt"
             with open(transcript_file, "w") as f:
                 f.write(transcript)
             # 通过 openai_gpt_chat 函数获取中文翻译
@@ -161,15 +204,11 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                         attempts = 0  # 当前尝试次数
                         while attempts < max_attempts:
                             attempts += 1
-                            if bool(re.search(r'[a-zA-Z]', sentence_translation)):
-                                if language == 'ja':
-                                    system_prompt_script_translator_again = f"You are a professional transcript translator. Translate AI-generated video transcripts into Japanese, ensuring the translation sounds like natural spoken language. The original text is: {sentence}. Please exclude proper nouns and translate all other content directly into Japanese. Output the translation without any additional text before or after."
-                                else:
-                                    system_prompt_script_translator_again = f"You are a professional transcript translator. Translate AI-generated video transcripts into Chinese, ensuring the translation sounds like natural spoken language. The original text is: {sentence}. Please exclude proper nouns and translate all other content directly into Chinese. Output the translation without any additional text before or after."
+                            if bool(re.search(r'[a-zA-Z\n ]', sentence_translation)):
                                 time.sleep(3)
                                 new_translation = openai_gpt_chat(
-                                    system_prompt_script_translator_again,
-                                    sentence_translation, youtube_link, email_link)
+                                    system_prompt_script_translator,
+                                    sentence, youtube_link, email_link)
                                 new_translation = new_translation.replace('\n', '')
                                 if new_translation == sentence_translation:
                                     break
@@ -186,11 +225,11 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
             print("中文翻译文本：")
             print(translated_text)
             # 将 translated_script 保存为 txt 文件，文件名为音频文件名 + _cn.txt 后缀
-            translated_script_file = os.path.splitext(dst_audio)[0] + f"_{language}.txt"
+            translated_script_file = os.path.splitext(dst_video)[0] + f"_{language}.txt"
             with open(translated_script_file, "w") as f:
                 f.write(translated_text)
             # 通过 chinese_audio_generation 函数生成中文音频并保存在 Video_downloaded 目录下，dst_audio 的文件名后增加 _cn + .mp3 后缀
-            output_file = os.path.splitext(dst_audio)[0] + f"_{language}.mp3"
+            output_file = os.path.splitext(dst_video)[0] + f"_{language}.mp3"
             fix_video = chinese_audio_batch_generation_and_merge(translated_text, output_file, offset_seconds,
                                                                  dst_video, youtube_link, email_link,
                                                                  model_id, api_key=fish_audio_api_key)
@@ -200,7 +239,7 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                 try:
                     srt_file = ""
                     if with_srt != 0:
-                        srt_file = f"{os.path.splitext(dst_audio)[0]}_srt.srt"
+                        srt_file = f"{os.path.splitext(dst_video)[0]}_srt.srt"
                         convert_to_srt(translated_text, srt_file)
                     output_filename_list = process_video(fix_video, dst_video, output_file, offset_seconds, language,
                                                          srt_file, with_srt)

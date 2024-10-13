@@ -3,7 +3,78 @@ import random
 import string
 import subprocess
 from datetime import datetime
+from moviepy.editor import AudioFileClip
 from send_error import *
+
+def split_audio(audio_file: str, target_duration: int = 60, window: int = 60):
+    print("🔪 Splitting audio into segments...")
+
+    # Use moviepy to get audio duration
+    with AudioFileClip(audio_file) as audio:
+        duration = audio.duration
+
+    segments = []
+    start = 0
+    while start < duration:
+        end = min(start + target_duration + window, duration)
+        if end - start < target_duration:
+            segments.append((start, end))
+            break
+
+        # Analyze audio in the 2-minute window
+        window_start = start + target_duration - window
+        window_end = min(window_start + 2 * window, duration)
+
+        ffmpeg_cmd = [
+            'ffmpeg',
+            '-y',
+            '-i', audio_file,
+            '-ss', str(window_start),
+            '-to', str(window_end),
+            '-af', 'silencedetect=n=-30dB:d=0.5',
+            '-f', 'null',
+            '-'
+        ]
+
+        output = subprocess.run(ffmpeg_cmd, capture_output=True, text=True).stderr
+
+        # Parse silence detection output
+        silence_end_times = [float(line.split('silence_end: ')[1].split(' ')[0]) for line in output.split('\n') if 'silence_end' in line]
+
+        if silence_end_times:
+            # Find the first silence after the target duration
+            split_point = next((t for t in silence_end_times if t > target_duration), None)
+            if split_point:
+                segments.append((start, start + split_point))
+                start += split_point
+                continue
+
+        # If no suitable split point found, split at the target duration
+        segments.append((start, start + target_duration))
+        start += target_duration
+
+    print(f"🔪 Split audio into {len(segments)} segments")
+    audio_files = []
+
+    # 遍历每个时间段 (开始时间和结束时间) 并进行音频截取
+    for idx, (start_time, end_time) in enumerate(segments):
+        output_file = f'{os.path.splitext(audio_file)[0]}_{idx+1:03d}.wav'
+
+        # 构建 ffmpeg 命令，按指定时间段截取音频
+        command = [
+            'ffmpeg', '-y', '-i', audio_file,
+            '-ss', str(start_time),
+            '-to', str(end_time),
+            '-c', 'copy', output_file
+        ]
+
+        # 调用 ffmpeg 执行截取
+        subprocess.run(command, check=True)
+
+        # 将生成的音频文件路径添加到列表
+        audio_files.append(output_file)
+
+    return audio_files
 
 def split_audio_from_mp4(input_source_mp4, email_link, output_audio_format='mp3'):
     """
@@ -54,7 +125,7 @@ def split_audio_from_mp4(input_source_mp4, email_link, output_audio_format='mp3'
     try:
         subprocess.run(ffmpeg_command, check=True)
         print(f"音频已成功提取并保存为 {output_audio_file}")
-        return output_audio_file
+        return split_audio(output_audio_file)
     except subprocess.CalledProcessError as e:
         send_error_email(f"step 3: 提取音频时出错：{e}", input_source_mp4, email_link)
         print(f"提取音频时出错：{e}")
