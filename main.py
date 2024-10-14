@@ -193,23 +193,24 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                         sentence = match.group(3).strip()
                         if language == 'ja':
                             system_prompt_script_translator = system_prompt_script_translator_japanese
-                            transcript_pattern = r'^[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]+$'
+                            transcript_pattern = r'^[\u3040-\u309f\u30a0-\u30ff\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]+$'
                         else:
                             system_prompt_script_translator = system_prompt_script_translator_chinese
-                            transcript_pattern = r'^[\u3040-\u309f\u30a0-\u30ff\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]+$'
+                            transcript_pattern = r'^[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef0-9\.\+\-\*/=%\u00B1\u2212\u221A\s]+$'
                         sentence_translation = gaia_gpt_chat(system_prompt_script_translator, sentence, youtube_link,
                                                              email_link)
                         if sentence_translation:
                             sentence_translation = sentence_translation.replace('\n', '')
                         else:
                             sentence_translation = sentence
+                        print(f"qwen result: {sentence_translation}")
                         max_attempts = 4  # 最大尝试次数
                         attempts = 0  # 当前尝试次数
                         while attempts < max_attempts:
                             if language == 'ja':
-                                system_prompt_script_translator_again = f"I tried to translate this content into Japanese: {sentence}.\n\nBut I found that there is also an English part in it. Can you help me translate it again and make sure it is all translated into Japanese. Aiming for naturalness, and try to make it sound like a native Japanese speaker. Only provide the Chinese part of the translation. Keep all proper nouns (like programming languages, brand names, etc.) unchanged. For example, 'I write this code with Rust.' should be translated as 'このコードはRustで書きました。' This is what I translated this time:"
+                                system_prompt_script_translator_again = f"I tried to translate this content into Japanese: {sentence}.\n\nBut I found that there is also an English part in it. Can you help me translate it again and make sure it is all translated into Japanese. Aiming for naturalness, and try to make it sound like a native Japanese speaker. Only provide the Chinese part of the translation. No brackets. Keep all proper nouns (like programming languages, brand names, etc.) unchanged. For example, 'I write this code with Rust.' should be translated as 'このコードはRustで書きました。'"
                             else:
-                                system_prompt_script_translator_again = f"I tried to translate this content into Chinese: {sentence}.\n\nBut I found that there is also an English part in it. Can you help me translate it again and make sure it is all translated into Chinese. Aiming for naturalness, and try to make it sound like a native Chinese speaker. Only provide the Chinese part of the translation. Keep all proper nouns (like programming languages, brand names, etc.) unchanged. For example, 'I write this code with Rust.' should be translated as '我用 Rust 编写这段代码.' This is what I translated this time:"
+                                system_prompt_script_translator_again = f"I tried to translate this content into Chinese: {sentence}.\n\nBut I found that there is also an English part in it. Can you help me translate it again and make sure it is all translated into Chinese. Aiming for naturalness, and try to make it sound like a native Chinese speaker. Only provide the Chinese part of the translation. Delete spaces in sentences appropriately and no brackets. Keep all proper nouns (like programming languages, brand names, etc.) unchanged. For example, 'I write this code with Rust.' should be translated as '我用 Rust 编写这段代码.'"
                             if attempts == 0:
                                 this_sentence = sentence
                                 this_system_prompt_script_translator = system_prompt_script_translator
@@ -217,7 +218,8 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                                 this_sentence = sentence_translation
                                 this_system_prompt_script_translator = system_prompt_script_translator_again
                             attempts += 1
-                            if bool(re.match(transcript_pattern, sentence_translation)):
+                            if not bool(re.match(transcript_pattern, sentence_translation)):
+                                print("这句话翻译的带英文了！")
                                 time.sleep(3)
                                 new_translation = openai_gpt_chat(
                                     this_system_prompt_script_translator,
