@@ -206,15 +206,21 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                         max_attempts = 4  # 最大尝试次数
                         attempts = 0  # 当前尝试次数
                         while attempts < max_attempts:
-                            # if attempts == 0:
-                            this_sentence = sentence
-                            # else:
-                            #     this_sentence = sentence_translation
+                            if language == 'ja':
+                                system_prompt_script_translator_again = f"I tried to translate this content into Japanese: {sentence}.\n\nBut I found that there is also an English part in it. Can you help me translate it again and make sure it is all translated into Japanese. Aiming for naturalness, and try to make it sound like a native Japanese speaker. Only provide the Chinese part of the translation. Keep all proper nouns (like programming languages, brand names, etc.) unchanged. For example, 'I write this code with Rust.' should be translated as 'このコードはRustで書きました。' This is what I translated this time:"
+                            else:
+                                system_prompt_script_translator_again = f"I tried to translate this content into Chinese: {sentence}.\n\nBut I found that there is also an English part in it. Can you help me translate it again and make sure it is all translated into Chinese. Aiming for naturalness, and try to make it sound like a native Chinese speaker. Only provide the Chinese part of the translation. Keep all proper nouns (like programming languages, brand names, etc.) unchanged. For example, 'I write this code with Rust.' should be translated as '我用 Rust 编写这段代码.' This is what I translated this time:"
+                            if attempts == 0:
+                                this_sentence = sentence
+                                this_system_prompt_script_translator = system_prompt_script_translator
+                            else:
+                                this_sentence = sentence_translation
+                                this_system_prompt_script_translator = system_prompt_script_translator_again
                             attempts += 1
                             if bool(re.match(transcript_pattern, sentence_translation)):
                                 time.sleep(3)
                                 new_translation = openai_gpt_chat(
-                                    system_prompt_script_translator,
+                                    this_system_prompt_script_translator,
                                     this_sentence, youtube_link, email_link)
                                 new_translation = new_translation.replace('\n', '')
                                 if new_translation == sentence_translation:
