@@ -24,7 +24,7 @@ def format_subtitles_with_timestamps(transcript, youtube_link, email_link):
                 # 如果有没完成的数据，和这一句拼起来
                 if temp_sentence:
                     if sentence and sentence[0].isupper():
-                        final_transcript.append(f"[{last_end} --> {start_time}]  {temp_sentence}")
+                        final_transcript.append(f"[{last_end} --> {start_time}]  {re.sub(r'\s{2,}', ' ', temp_sentence)}")
                     else:
                         if last_end:
                             start_time = last_end
@@ -34,7 +34,7 @@ def format_subtitles_with_timestamps(transcript, youtube_link, email_link):
                     last_end = ""
                 if sentence.endswith(".") or sentence.endswith("!") or sentence.endswith("?"):
                     last_end = end_time
-                    final_transcript.append(f"[{start_time} --> {end_time}]  {sentence}")
+                    final_transcript.append(f"[{start_time} --> {end_time}]  {re.sub(r'\s{2,}', ' ', sentence)}")
                 elif '. ' in sentence:
                     # 计算时间差
                     start_timestamps = datetime.strptime(start_time, time_format)
@@ -50,14 +50,14 @@ def format_subtitles_with_timestamps(transcript, youtube_link, email_link):
                             value_to_add = time_difference.total_seconds() * this_text_length / total_text_length
                             new_timestamps = start_timestamps + timedelta(seconds=value_to_add)
                             new_end_time = new_timestamps.strftime(time_format)[:-3]
-                            final_transcript.append(f"[{start_time} --> {new_end_time}]  {item}")
+                            final_transcript.append(f"[{start_time} --> {new_end_time}]  {re.sub(r'\s{2,}', ' ', item)}")
                             last_end = new_end_time
                         elif i + 1 == len(paragraphs):
-                            final_transcript.append(f"[{start_time} --> {end_time}]  {item}")
+                            final_transcript.append(f"[{start_time} --> {end_time}]  {re.sub(r'\s{2,}', ' ', item)}")
                         else:
                             temp_sentence = item
                 elif i + 1 == len(paragraphs):
-                    final_transcript.append(f"[{start_time} --> {end_time}]  {sentence}")
+                    final_transcript.append(f"[{start_time} --> {end_time}]  {re.sub(r'\s{2,}', ' ', sentence)}")
                 else:
                     temp_sentence = sentence
                     last_end = start_time

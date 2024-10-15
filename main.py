@@ -5,8 +5,6 @@ import subprocess
 import time
 from datetime import datetime, timedelta
 from moviepy.editor import AudioFileClip
-from yt_dlp import YoutubeDL
-
 from celery_local import celery
 from format_timestamps import *
 from voice_generate import *
@@ -49,31 +47,19 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
     # 判断用户输入的是一个 Https 链接还是一个绝对文件名路径，如果是文件名路径，则将文件直接移动到 video_temp_dir 目录下，如果是 Https 链接，则使用 yt-dlp 下载视频
     if youtube_link.lower().startswith('http'):
         # yt-dlp 下载命令
-        ydl_opts = {
-            'format': 'bestvideo+bestaudio/best',
-            'outtmpl': f'{video_temp_dir}/%(title)s.%(ext)s',
-            'noplaylist': True,
-            'writethumbnail': True,
-            'postprocessors': [{
-                'key': 'FFmpegThumbnailsConvertor',
-                'format': 'jpg',
-            }],
-        }
-        with YoutubeDL(ydl_opts) as ydl:
-            ydl.download([youtube_link])
-        # command = [
-        #     'yt-dlp',
-        #     '--cookies',
-        #     'cookies-all.txt',
-        #     '--rm-cache-dir',  # 清除缓存
-        #     '--restrict-filenames',  # 限制文件名字符，避免特殊字符
-        #     '-f',
-        #     'bestvideo+bestaudio/best',
-        #     '--merge-output-format', 'mp4',
-        #     '-o',
-        #     os.path.join(video_temp_dir, '%(title)s.%(ext)s'),
-        #     youtube_link
-        # ]
+        command = [
+            'yt-dlp',
+            '--cookies',
+            'cookies-all.txt',
+            '--rm-cache-dir',  # 清除缓存
+            '--restrict-filenames',  # 限制文件名字符，避免特殊字符
+            '-f',
+            'bestvideo+bestaudio/best',
+            '--merge-output-format', 'mp4',
+            '-o',
+            os.path.join(video_temp_dir, '%(title)s.%(ext)s'),
+            youtube_link
+        ]
         try:
             subprocess.run(command, check=True)
         except subprocess.CalledProcessError as e:
@@ -196,7 +182,7 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                             transcript_pattern = r'^[\u3040-\u309f\u30a0-\u30ff\u4e00-\u9fff\u3000-\u303f\uff00-\uffef]+$'
                         else:
                             system_prompt_script_translator = system_prompt_script_translator_chinese
-                            transcript_pattern = r'^[\u4e00-\u9fff\u3000-\u303f\uff00-\uffef0-9\.\+\-\*/=%\u00B1\u2212\u221A\s]+$'
+                            transcript_pattern = r'[^\u4e00-\u9fff\u3000-\u303f\uff00-\uffef0-9\.\+\-\*/=%\u00B1\u2212\u221A\s]+'
                         sentence_translation = gaia_gpt_chat(system_prompt_script_translator, sentence, youtube_link,
                                                              email_link)
                         if sentence_translation:
@@ -206,6 +192,12 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                         print(f"qwen result: {sentence_translation}")
                         max_attempts = 4  # 最大尝试次数
                         attempts = 0  # 当前尝试次数
+                        with open('trans_white_list.txt', 'r') as file:
+                            words = file.read().splitlines()
+                        # 处理每一行，拆分成独立的单词
+                        all_words = []
+                        for word_line in words:
+                            all_words.append(word_line.lower())
                         while attempts < max_attempts:
                             if language == 'ja':
                                 system_prompt_script_translator_again = f"I tried to translate this content into Japanese: {sentence}.\n\nBut I found that there is also an English part in it. Can you help me translate it again and make sure it is all translated into Japanese. Aiming for naturalness, and try to make it sound like a native Japanese speaker. Only provide the Chinese part of the translation. No brackets. Keep all proper nouns (like programming languages, brand names, etc.) unchanged. For example, 'I write this code with Rust.' should be translated as 'このコードはRustで書きました。'"
@@ -218,8 +210,11 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                                 this_sentence = sentence_translation
                                 this_system_prompt_script_translator = system_prompt_script_translator_again
                             attempts += 1
-                            if not bool(re.match(transcript_pattern, sentence_translation)):
-                                print("这句话翻译的带英文了！")
+                            non_trans_words = re.findall(transcript_pattern, sentence_translation)
+                            non_trans_words = [word.lower() for word in non_trans_words if word.strip()]
+                            invalid_words = [item for item in non_trans_words if item not in all_words]
+                            print(f"发现了非法字符：{invalid_words}")
+                            if len(invalid_words) > 0 and len(non_trans_words) > 4:
                                 time.sleep(3)
                                 new_translation = openai_gpt_chat(
                                     this_system_prompt_script_translator,
