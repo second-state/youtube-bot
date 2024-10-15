@@ -200,9 +200,9 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                             all_words.append(word_line.lower())
                         while attempts < max_attempts:
                             if language == 'ja':
-                                system_prompt_script_translator_again = f"I tried to translate this content into Japanese: {sentence}.\n\nBut I found that there is also an English part in it. Can you help me translate it again and make sure it is all translated into Japanese. Aiming for naturalness, and try to make it sound like a native Japanese speaker. In any case, strictly only provide the Chinese part of the translation. No brackets. Keep all proper nouns (like programming languages, brand names, etc.) unchanged. For example, 'I write this code with Rust.' should be translated as 'このコードはRustで書きました。'"
+                                system_prompt_script_translator_again = f"I tried to translate this content into Japanese: {sentence}.\n\nBut I found that there is also an English part in it. Can you help me translate it again and make sure it is all translated into Japanese. Aiming for naturalness, and try to make it sound like a native Japanese speaker. Only provide the Chinese part of the translation. No brackets. Keep all proper nouns (like programming languages, brand names, etc.) unchanged. For example, 'I write this code with Rust.' should be translated as 'このコードはRustで書きました。'"
                             else:
-                                system_prompt_script_translator_again = f"I tried to translate this content into Chinese: {sentence}.\n\nBut I found that there is also an English part in it. Can you help me translate it again and make sure it is all translated into Chinese. Aiming for naturalness, and try to make it sound like a native Chinese speaker. In any case, strictly only provide the Chinese part of the translation. Delete spaces in sentences appropriately and no brackets. Keep all proper nouns (like programming languages, brand names, etc.) unchanged. For example, 'I write this code with Rust.' should be translated as '我用 Rust 编写这段代码。'"
+                                system_prompt_script_translator_again = f"I tried to translate this content into Chinese: {sentence}.\n\nBut I found that there is also an English part in it. Can you help me translate it again and make sure it is all translated into Chinese. Aiming for naturalness, and try to make it sound like a native Chinese speaker. Only provide the Chinese part of the translation. Delete spaces in sentences appropriately and no brackets. Keep all proper nouns (like programming languages, brand names, etc.) unchanged. For example, 'I write this code with Rust.' should be translated as '我用 Rust 编写这段代码.'"
                             if attempts == 0:
                                 this_sentence = sentence
                                 this_system_prompt_script_translator = system_prompt_script_translator
@@ -213,8 +213,21 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                             non_trans_words = re.findall(transcript_pattern, sentence_translation)
                             non_trans_words = [word.lower() for word in non_trans_words if word.strip()]
                             invalid_words = [item for item in non_trans_words if item not in all_words]
-                            print(f"发现了非法字符：{invalid_words}")
-                            if (len(invalid_words) > 0 and len(non_trans_words) >= 4) or bool(re.search(r'（.*?）', sentence_translation)):
+                            if invalid_words:
+                                unique_invalid_words = set(invalid_words)
+                                existing_words = set()
+                                try:
+                                    with open('invalid_characters.txt', 'r', encoding='utf-8') as file:
+                                        existing_words = set(file.read().splitlines())
+                                except FileNotFoundError:
+                                    pass
+                                new_invalid_words = unique_invalid_words - existing_words
+                                if new_invalid_words:
+                                    with open('invalid_characters.txt', 'a', encoding='utf-8') as file:
+                                        for word in new_invalid_words:
+                                            file.write(f"{word}\n")  # 每个非法字符一行
+                                print(f"发现了非法字符：{invalid_words}")
+                            if len(invalid_words) > 0 and len(non_trans_words) >= 4:
                                 time.sleep(3)
                                 new_translation = openai_gpt_chat(
                                     this_system_prompt_script_translator,
