@@ -214,7 +214,7 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                             non_trans_words = [word.lower() for word in non_trans_words if word.strip()]
                             invalid_words = [item for item in non_trans_words if item not in all_words]
                             print(f"发现了非法字符：{invalid_words}")
-                            if len(invalid_words) > 0 and len(non_trans_words) >= 4:
+                            if (len(invalid_words) > 0 and len(non_trans_words) >= 4) or bool(re.search(r'（.*?）', sentence_translation)):
                                 time.sleep(3)
                                 new_translation = openai_gpt_chat(
                                     this_system_prompt_script_translator,

@@ -62,7 +62,7 @@ def gaia_gpt_chat(system_prompt, prompt, youtube_link, email_link):
             response.raise_for_status()  # 检查HTTP错误
             response_data = response.json()
             translation_data = response_data['choices'][0]['message']['content']
-            return re.sub(r'^\.[a-zA-Z]+', '', translation_data).strip()
+            return re.sub(r'^\.[a-zA-Z]+', '', translation_data).removeprefix("__':").strip()
         except requests.exceptions.RequestException as e:
             print(f"Attempt {attempt} failed for {node_list[num]}. Error: {e}")
             if path == 0:
