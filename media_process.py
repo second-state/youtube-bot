@@ -192,7 +192,7 @@ def process_video(mp4_path, original_mp4_path, mp3_path, offset_seconds=5, langu
     print(f"Atempo filters: {atempo_filters}")
 
     # Step 6: Build ffmpeg command
-    file_name = os.path.splitext(os.path.basename(mp4_path))[0]
+    file_name = os.path.splitext(os.path.basename(original_mp4_path))[0]
     output_video_filename = "Video_downloaded/" + file_name + f"_{language}.mp4"
     output_srt_filename = "Video_downloaded/" + file_name + f"_{language}_cap.mp4"
     delay_in_ms = int(offset_seconds * 1000)

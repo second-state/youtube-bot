@@ -73,6 +73,22 @@ def format_subtitles_with_timestamps(transcript, youtube_link, email_link):
         "final_transcript": final_transcript
     }
 
+def convert_milliseconds_to_time_format(milliseconds):
+    # 计算小时
+    hours = milliseconds // (60 * 60 * 1000)
+    milliseconds %= (60 * 60 * 1000)
+
+    # 计算分钟
+    minutes = milliseconds // (60 * 1000)
+    milliseconds %= (60 * 1000)
+
+    # 计算秒
+    seconds = milliseconds // 1000
+    # 剩下的是毫秒
+    milliseconds %= 1000
+
+    # 格式化成 HH:MM:SS,xxx
+    return f"{int(hours):02}:{int(minutes):02}:{int(seconds):02},{int(milliseconds):03}"
 
 def convert_to_srt(input_text, output_file="subtitles.srt"):
     pattern = r"\[(\d{2}:\d{2}:\d{2}\.\d{3}) --> (\d{2}:\d{2}:\d{2}\.\d{3})\]  (.+)"
@@ -80,25 +96,34 @@ def convert_to_srt(input_text, output_file="subtitles.srt"):
     with open(output_file, "w", encoding="utf-8") as f:
         matches = re.findall(pattern, input_text)
         for idx, (start_time, end_time, text) in enumerate(matches, 1):
+            time_format = "%H:%M:%S.%f"
             start_time = start_time.replace('.', ',')
+            start_dt = datetime.strptime(start_time, time_format)
+            print(start_dt)
+            print(start_dt.hour)
+            print(start_dt.minute)
+            print(start_dt.second)
+            print(start_dt.microsecond)
             end_time = end_time.replace('.', ',')
 
             # 分离毫秒部分
             start_time_parts = start_time.split(',')
             end_time_parts = end_time.split(',')
             start_time_clean = start_time_parts[0]
+            start_milliseconds = int(start_time_parts[1])
             end_time_clean = end_time_parts[0]
-
+            end_milliseconds  = int(end_time_parts[1])
             # 计算时间差（以秒为单位）
-            start_time_seconds = sum(int(x) * 60 ** i for i, x in enumerate(reversed(start_time_clean.split(':'))))
-            end_time_seconds = sum(int(x) * 60 ** i for i, x in enumerate(reversed(end_time_clean.split(':'))))
-            duration = end_time_seconds - start_time_seconds
+            start_time_milliseconds = (sum(int(x) * 60 ** i for i, x in enumerate(reversed(start_time_clean.split(':')))) * 1000 + start_milliseconds)
+            end_time_milliseconds = (sum(int(x) * 60 ** i for i, x in enumerate(reversed(end_time_clean.split(':')))) * 1000 + end_milliseconds)
+
+            duration_milliseconds = end_time_milliseconds - start_time_milliseconds
 
             # 如果文本长度大于50，进行分段处理
             if len(text) > 35:
                 segments = []
                 start_index = 0
-                segment_duration = duration / (len(text) // 30 + 1) if len(text) > 30 else duration
+                segment_duration = duration_milliseconds / len(text)
 
                 while start_index < len(text):
                     segment = text[start_index:start_index + 30]
@@ -113,14 +138,18 @@ def convert_to_srt(input_text, output_file="subtitles.srt"):
 
                     segments.append(segment.strip())
                     start_index += len(segment)
-
                 # 计算新的时间段并写入
+                last_end = ""
                 for i, segment in enumerate(segments):
-                    new_start_time_seconds = start_time_seconds + i * segment_duration
-                    new_end_time_seconds = new_start_time_seconds + (segment_duration * len(segment) / 30)
+                    if last_end:
+                        new_start_time_seconds = last_end
+                    else:
+                        new_start_time_seconds = start_time_milliseconds
+                    new_end_time_seconds = new_start_time_seconds + len(segment) * segment_duration
+                    last_end = new_end_time_seconds
 
-                    new_start_time = f"{int(new_start_time_seconds // 3600):02}:{int((new_start_time_seconds % 3600) // 60):02}:{int(new_start_time_seconds % 60):02},{int((new_start_time_seconds % 1) * 1000):03}"
-                    new_end_time = f"{int(new_end_time_seconds // 3600):02}:{int((new_end_time_seconds % 3600) // 60):02}:{int(new_end_time_seconds % 60):02},{int((new_end_time_seconds % 1) * 1000):03}"
+                    new_start_time = convert_milliseconds_to_time_format(new_start_time_seconds)
+                    new_end_time = convert_milliseconds_to_time_format(new_end_time_seconds)
 
                     f.write(f"{idx}\n")
                     f.write(f"{new_start_time} --> {new_end_time}\n")
