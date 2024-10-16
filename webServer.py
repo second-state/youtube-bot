@@ -2,6 +2,9 @@ import os
 import re
 import requests
 import subprocess
+import random
+import string
+from datetime import datetime
 import threading
 import time
 from celery_local import celery
@@ -46,9 +49,11 @@ def upload():
         return jsonify({'video_name': title, 'video_thumbnail': thumbnail_url, 'url': youtube_link})
     elif 'file' in request.files:  # 处理文件上传
         file = request.files['file']
-        filename = secure_filename(file.filename)
-        print(filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        filename = secure_filename(file.filename).split(".")[1]
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        letters = string.ascii_letters + string.digits
+        random_value = ''.join(random.choice(letters) for _ in range(6)) + timestamp + "." + filename
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], random_value)
         file.save(filepath)
         temp_dir = "temp"
         os.makedirs(temp_dir, exist_ok=True)
@@ -91,15 +96,20 @@ def run_code():
 @app.route('/runCodeByUrl', methods=['POST'])
 def run_code_by_url():
     second = request.form.get('second')
-    youtube_link = request.form.get('youtube_link')
+    file = request.files['file']
+    filename = secure_filename(file.filename).split(".")[1]
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    letters = string.ascii_letters + string.digits
+    random_value = ''.join(random.choice(letters) for _ in range(6)) + timestamp + "." + filename
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], random_value)
+    file.save(filepath)
     email_link = request.form.get('email_link')
     sound_id = request.form.get('soundId')
     language = request.form.get('language')
     with_srt = 2
 
-    main.delay(second, youtube_link, email_link, sound_id, language, with_srt)
+    main.delay(second, filepath, email_link, sound_id, language, with_srt)
 
-    message = ""
     if language == "zh":
         message = "我们会将翻译好的视频发送到您的邮箱"
     elif language == "ja":

@@ -192,11 +192,9 @@ def process_video(mp4_path, original_mp4_path, mp3_path, offset_seconds=5, langu
     print(f"Atempo filters: {atempo_filters}")
 
     # Step 6: Build ffmpeg command
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    letters = string.ascii_letters + string.digits
-    random_value = ''.join(random.choice(letters) for _ in range(6)) + timestamp
-    output_video_filename = "Video_downloaded/" + random_value + f"_{language}.mp4"
-    output_srt_filename = "Video_downloaded/" + random_value + f"_{language}_cap.mp4"
+    file_name = os.path.splitext(os.path.basename(mp4_path))[0]
+    output_video_filename = "Video_downloaded/" + file_name + f"_{language}.mp4"
+    output_srt_filename = "Video_downloaded/" + file_name + f"_{language}_cap.mp4"
     delay_in_ms = int(offset_seconds * 1000)
     filter_complex = (
         f"[0:v]setpts=PTS/{speed_factor}[v];"
