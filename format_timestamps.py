@@ -30,13 +30,14 @@ def format_subtitles_with_timestamps(transcript, mp3_path, youtube_link, email_l
                     ]
                     output = subprocess.run(ffmpeg_cmd, capture_output=True, text=True).stderr
                     match = re.search(r'silence_end: ([\d\.]+)', output)
-                    silence_end = match[0].split(": ")[1]
-                    silence_end = float(silence_end)
-                    hours = math.floor(silence_end // 3600)
-                    minutes = math.floor((silence_end % 3600) // 60)
-                    seconds = math.floor(silence_end % 60)
-                    milliseconds = math.floor((silence_end - math.floor(silence_end)) * 1000)
-                    start_time = f"{hours:02}:{minutes:02}:{seconds:02}.{milliseconds:03}"
+                    if match:
+                        silence_end = match[0].split(": ")[1]
+                        silence_end = float(silence_end)
+                        hours = math.floor(silence_end // 3600)
+                        minutes = math.floor((silence_end % 3600) // 60)
+                        seconds = math.floor(silence_end % 60)
+                        milliseconds = math.floor((silence_end - math.floor(silence_end)) * 1000)
+                        start_time = f"{hours:02}:{minutes:02}:{seconds:02}.{milliseconds:03}"
                 sentence = match.group(3).strip()
                 sentence = re.sub(r'[^，。！？!?,.%\'a-zA-Z0-9\u4e00-\u9fa5\uAC00-\uD7AF\u3040-\u30FF]', ' ', sentence)
                 # 合并一个总和的，给ai用
