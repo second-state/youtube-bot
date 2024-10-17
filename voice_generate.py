@@ -131,7 +131,7 @@ def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_sec
                 time_format = "%H:%M:%S.%f"
                 base_datetime = datetime(1900, 1, 1)
                 start_dt = datetime.strptime(start_time, time_format)
-                if i == 0 and (start_dt.hour != 0 or start_dt.minute != 0 or start_dt.second == 0 or start_dt.microsecond == 0):
+                if i == 0 and (start_dt.hour != 0 or start_dt.minute != 0 or start_dt.second != 0 or start_dt.microsecond != 0):
                     silence_time = (start_dt - base_datetime).total_seconds()
                     print(f'[INFO-{i}] create silence file: {silence_time}')
                     silence_file = f"{temp_dir}/silence_{i}.mp3"
