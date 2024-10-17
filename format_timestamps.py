@@ -29,9 +29,9 @@ def format_subtitles_with_timestamps(transcript, mp3_path, youtube_link, email_l
                         '-af', 'silencedetect=noise=-30dB:d=0.5', '-f', 'null', '-'
                     ]
                     output = subprocess.run(ffmpeg_cmd, capture_output=True, text=True).stderr
-                    match = re.search(r'silence_end: ([\d\.]+)', output)
-                    if match:
-                        silence_end = match[0].split(": ")[1]
+                    match_time = re.search(r'silence_end: ([\d\.]+)', output)
+                    if match_time:
+                        silence_end = match_time[0].split(": ")[1]
                         silence_end = float(silence_end)
                         hours = math.floor(silence_end // 3600)
                         minutes = math.floor((silence_end % 3600) // 60)
