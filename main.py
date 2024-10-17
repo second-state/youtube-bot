@@ -158,7 +158,7 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
             print("音频转录文本：")
             print(transcript)
             print("合并成完整句子：")
-            format_data = format_subtitles_with_timestamps(transcript, youtube_link, email_link)
+            format_data = format_subtitles_with_timestamps(transcript, dst_audio, youtube_link, email_link)
             transcript = format_data["transcript"]
             final_transcript = format_data["final_transcript"]
             # 将 transcript 保存为 txt 文件，文件名为音频文件名 + _en.txt 后缀
