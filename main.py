@@ -127,7 +127,6 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                             pattern = r'\[(\d{2}:\d{2}:\d{2}\.\d{3}) --> (\d{2}:\d{2}:\d{2}\.\d{3})\]\s*(.*)'
                             time_format = "%H:%M:%S.%f"
                             match = re.match(pattern, paragraph)
-                            # 如果这一句话没有内容，或者以[ or { or (开头，多半代表着这段话里有不正确的内容，就刨除掉这段话
                             if match and match.group(3):
                                 start_time = match.group(1)
                                 end_time = match.group(2)

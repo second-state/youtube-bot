@@ -1,8 +1,10 @@
 import re
+import math
+import subprocess
 from datetime import datetime, timedelta
 from send_error import *
 
-def format_subtitles_with_timestamps(transcript, youtube_link, email_link):
+def format_subtitles_with_timestamps(transcript, mp3_path, youtube_link, email_link):
     paragraphs = transcript.split("\n")
     final_transcript = []
     last_end = ""
@@ -18,6 +20,23 @@ def format_subtitles_with_timestamps(transcript, youtube_link, email_link):
             if match and match.group(3) and not match.group(3).startswith(("[", "{", "(")):
                 start_time = match.group(1)
                 end_time = match.group(2)
+                if start_time == "00:00:00.000":
+                    hours, minutes, seconds_milliseconds = end_time.split(":")
+                    seconds, milliseconds = seconds_milliseconds.split(".")
+                    total_seconds = int(hours) * 3600 + int(minutes) * 60 + int(seconds) + int(milliseconds) / 1000
+                    ffmpeg_cmd = [
+                        'ffmpeg', '-t', str(total_seconds), '-i', mp3_path,
+                        '-af', 'silencedetect=noise=-30dB:d=0.5', '-f', 'null', '-'
+                    ]
+                    output = subprocess.run(ffmpeg_cmd, capture_output=True, text=True).stderr
+                    match = re.search(r'silence_end: ([\d\.]+)', output)
+                    silence_end = match[0].split(": ")[1]
+                    silence_end = float(silence_end)
+                    hours = math.floor(silence_end // 3600)
+                    minutes = math.floor((silence_end % 3600) // 60)
+                    seconds = math.floor(silence_end % 60)
+                    milliseconds = math.floor((silence_end - math.floor(silence_end)) * 1000)
+                    start_time = f"{hours:02}:{minutes:02}:{seconds:02}.{milliseconds:03}"
                 sentence = match.group(3).strip()
                 sentence = re.sub(r'[^，。！？!?,.%\'a-zA-Z0-9\u4e00-\u9fa5\uAC00-\uD7AF\u3040-\u30FF]', ' ', sentence)
                 # 合并一个总和的，给ai用
