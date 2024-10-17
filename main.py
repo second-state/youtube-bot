@@ -227,7 +227,7 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                                         for word in new_invalid_words:
                                             file.write(f"{word}\n")  # 每个非法字符一行
                                 print(f"发现了非法字符：{invalid_words}")
-                            if (len(invalid_words) > 0 and len(non_trans_words) >= 4) or bool(re.search(r'（.*?）', sentence_translation)) or sentence_translation.startswith("'") or (sentence_translation.startswith('"') and len(invalid_words) > 2):
+                            if (len(invalid_words) > 0 and len(non_trans_words) >= 4) or bool(re.search(r'（.*?）', sentence_translation)) or sentence_translation.startswith("'") or sentence_translation.startswith('"'):
                                 time.sleep(3)
                                 new_translation = openai_gpt_chat(
                                     this_system_prompt_script_translator,

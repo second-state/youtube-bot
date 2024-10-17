@@ -96,14 +96,7 @@ def convert_to_srt(input_text, output_file="subtitles.srt"):
     with open(output_file, "w", encoding="utf-8") as f:
         matches = re.findall(pattern, input_text)
         for idx, (start_time, end_time, text) in enumerate(matches, 1):
-            time_format = "%H:%M:%S.%f"
             start_time = start_time.replace('.', ',')
-            start_dt = datetime.strptime(start_time, time_format)
-            print(start_dt)
-            print(start_dt.hour)
-            print(start_dt.minute)
-            print(start_dt.second)
-            print(start_dt.microsecond)
             end_time = end_time.replace('.', ',')
 
             # 分离毫秒部分

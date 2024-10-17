@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 import httpx
 import ormsgpack
+import time
 from gpt_function import *
 from media_process import *
 from send_error import *
@@ -19,8 +20,8 @@ audio_id_danli_chinese = os.getenv("FISH_AUDIO_ID_DANLI_CHINESE")
 
 
 def chinese_audio_generation(input_text, output_file, model_id=audio_id_leowang_chinese, api_key=fish_audio_api_key):
-    print(f"Generating audio...")
     url = "https://api.fish.audio/v1/tts"
+    max_retries = 4
     request = {
         "text": input_text,
         "reference_id": model_id,
@@ -36,19 +37,39 @@ def chinese_audio_generation(input_text, output_file, model_id=audio_id_leowang_
         "Content-Type": "application/msgpack"
     }
 
-    with (
-        httpx.Client() as client,
-        open(output_file, "wb") as f,
-    ):
-        with client.stream(
-                "POST",
-                url,
-                content=ormsgpack.packb(request, option=ormsgpack.OPT_SERIALIZE_PYDANTIC),
-                headers=headers,
-                timeout=None,
-        ) as response:
-            for chunk in response.iter_bytes():
-                f.write(chunk)
+    retries = 0
+    success = False
+
+    while retries < max_retries and not success:
+        try:
+            with (
+                httpx.Client() as client,
+                open(output_file, "wb") as f,
+            ):
+                with client.stream(
+                        "POST",
+                        url,
+                        content=ormsgpack.packb(request, option=ormsgpack.OPT_SERIALIZE_PYDANTIC),
+                        headers=headers,
+                        timeout=None,
+                ) as response:
+                    if response.status_code == 200:
+                        for chunk in response.iter_bytes():
+                            f.write(chunk)
+                        success = True
+                    else:
+                        print(f"Request failed with status code {response.status_code}. Retrying...")
+        except Exception as e:
+            print(f"An error occurred: {e}. Retrying...")
+
+        retries += 1
+        if not success:
+            time.sleep(2)  # 等待 2 秒再进行下一次重试
+
+    if not success:
+        print("Request failed after 5 retries.")
+    else:
+        print("Request succeeded!")
     return output_file
 
 # def test_audio_generation(model_id, api_key=fish_audio_api_key):
@@ -130,7 +151,6 @@ def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_sec
                          "default=noprint_wrappers=1:nokey=1", dst_video],
                         stderr=subprocess.STDOUT).decode('utf-8').strip())
                     duration = mp4_duration - offset_seconds
-                    base_datetime = datetime(1900, 1, 1)
                     duration_dt = timedelta(seconds=duration)
                     end_dt = base_datetime + duration_dt
                 text = match.group(3)

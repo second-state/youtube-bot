@@ -17,8 +17,8 @@
             if (userLang.startsWith('zh')) {
                 document.getElementById('title').innerText = (checkLanguage ? "把英文转化为日文" : '把英文转化为中文');
                 document.getElementById('soundTitle').innerText = '声音ID: ';
-                document.getElementById('skip').innerText = '跳过前';
-                document.getElementById('second').innerText = '秒';
+                // document.getElementById('skip').innerText = '跳过前';
+                // document.getElementById('second').innerText = '秒';
                 document.getElementById('email-placeholder').placeholder = '在这里粘贴你的邮箱';
                 document.getElementById('pc-pay').innerText = '支付0美元（原价2.99美元）';
                 document.getElementById('mobile-pay').innerText = '支付0美元（原价2.99美元）';
@@ -31,8 +31,8 @@
             } else if (userLang.startsWith('ja')) {
                 document.getElementById('title').innerText = (checkLanguage ? "英語から日本語へ" : '英語から中国語へ');
                 document.getElementById('soundTitle').innerText = 'サウンドID: ';
-                document.getElementById('skip').innerText = '最初をスキップ ';
-                document.getElementById('second').innerText = '秒';
+                // document.getElementById('skip').innerText = '最初をスキップ ';
+                // document.getElementById('second').innerText = '秒';
                 document.getElementById('email-placeholder').placeholder = 'ここにメールアドレスを貼り付けてください';
                 document.getElementById('pc-pay').innerText = '支払い $0 (当初は $2.99)';
                 document.getElementById('mobile-pay').innerText = '支払い $0 (当初は $2.99)';
@@ -49,8 +49,8 @@
             } else {
                 document.getElementById('title').innerText = (checkLanguage ? "English to Japanese" : 'English to Chinese');
                 document.getElementById('soundTitle').innerText = 'Sound ID: ';
-                document.getElementById('skip').innerText = 'Skip the first ';
-                document.getElementById('second').innerText = 'seconds';
+                // document.getElementById('skip').innerText = 'Skip the first ';
+                // document.getElementById('second').innerText = 'seconds';
                 document.getElementById('email-placeholder').placeholder = 'Paste your email address here.';
                 document.getElementById('pc-pay').innerText = 'Pay $0 (originally $2.99)';
                 document.getElementById('mobile-pay').innerText = 'Pay $0 (originally $2.99)';
@@ -212,13 +212,13 @@
                     </div>
                     <input type="hidden" name="soundId" id="soundId"/>
                     <input type="hidden" name="language" id="language"/>
-                    <div style="display: flex;align-items: center;font-size: 1.5rem;">
-                        <div id="skip">Skip the first</div>
-                        <input name="second" style="width: 3rem;padding: 0.5rem 0.7rem;font-size: 1.5rem;" min="0"
-                               value="0"
-                               type="number"/>
-                        <div id="second">seconds</div>
-                    </div>
+<!--                    <div style="display: flex;align-items: center;font-size: 1.5rem;">-->
+<!--                        <div id="skip">Skip the first</div>-->
+<!--                        <input name="second" style="width: 3rem;padding: 0.5rem 0.7rem;font-size: 1.5rem;" min="0"-->
+<!--                               value="0"-->
+<!--                               type="number"/>-->
+<!--                        <div id="second">seconds</div>-->
+<!--                    </div>-->
                 </div>
             </div>
         </div>

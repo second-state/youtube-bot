@@ -30,29 +30,13 @@ def index():
 @app.route('/upload', methods=['POST'])
 def upload():
     print(request.form)
-    if 'youtube_link' in request.form and request.form['youtube_link'].strip():  # 处理YouTube链接
-        youtube_link = request.form['youtube_link']
-        pattern = r"v=([^&]+)"
-        match = re.search(pattern, youtube_link).group(1)
-        url = 'https://youtube.googleapis.com/youtube/v3/videos'
-        params = {
-            'part': 'snippet',
-            'id': match,
-            'key': YOUTUBE_V3_KEY
-        }
-        response = requests.request("GET", url, params=params, headers={'Accept': 'application/json'},
-                                    proxies={"http": None, "https": None})
-        data = response.json()
-        print(data)
-        title = data["items"][0]["snippet"]["title"] + ".mp4"
-        thumbnail_url = f'https://img.youtube.com/vi/{match}/sddefault.jpg'
-        return jsonify({'video_name': title, 'video_thumbnail': thumbnail_url, 'url': youtube_link})
-    elif 'file' in request.files:  # 处理文件上传
+    if 'file' in request.files:  # 处理文件上传
         file = request.files['file']
-        filename = secure_filename(file.filename).split(".")[1]
+        filename = secure_filename(file.filename)
+        file_type = filename.split(".")[1]
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
         letters = string.ascii_letters + string.digits
-        random_value = ''.join(random.choice(letters) for _ in range(6)) + timestamp + "." + filename
+        random_value = ''.join(random.choice(letters) for _ in range(6)) + timestamp + "." + file_type
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], random_value)
         file.save(filepath)
         temp_dir = "temp"
@@ -81,7 +65,7 @@ def result():
 
 @app.route('/runCode', methods=['POST'])
 def run_code():
-    second = request.form.get('second')
+    second = 0
     youtube_link = request.form.get('youtube_link')
     email_link = request.form.get('email_link')
     sound_id = request.form.get('soundId')
@@ -95,7 +79,7 @@ def run_code():
 
 @app.route('/runCodeByUrl', methods=['POST'])
 def run_code_by_url():
-    second = request.form.get('second')
+    second = 0
     file = request.files['file']
     filename = secure_filename(file.filename).split(".")[1]
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
