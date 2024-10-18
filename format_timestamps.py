@@ -20,7 +20,7 @@ def format_subtitles_with_timestamps(transcript, mp3_path, youtube_link, email_l
             if match and match.group(3) and not match.group(3).startswith(("[", "{", "(")):
                 start_time = match.group(1)
                 end_time = match.group(2)
-                if start_time == "00:00:00.000":
+                if start_time == "00:00:00.000" and mp3_path:
                     hours, minutes, seconds_milliseconds = end_time.split(":")
                     seconds, milliseconds = seconds_milliseconds.split(".")
                     total_seconds = int(hours) * 3600 + int(minutes) * 60 + int(seconds) + int(milliseconds) / 1000

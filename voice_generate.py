@@ -134,7 +134,7 @@ def chinese_audio_batch_generation_and_merge(input_text, output_file, offset_sec
                 if i == 0 and (start_dt.hour != 0 or start_dt.minute != 0 or start_dt.second != 0 or start_dt.microsecond != 0):
                     silence_time = (start_dt - base_datetime).total_seconds()
                     print(f'[INFO-{i}] create silence file: {silence_time}')
-                    silence_file = f"{temp_dir}/silence_{i}.mp3"
+                    silence_file = f"{temp_dir}/silence_front.mp3"
                     subprocess.run([
                         'ffmpeg', '-f', 'lavfi', '-t', str(silence_time),
                         '-i', 'anullsrc=r=44100:cl=mono',  # 设置采样率为 44.100kHz，声道为单声道
