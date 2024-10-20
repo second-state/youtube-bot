@@ -20,6 +20,8 @@ def format_subtitles_with_timestamps(transcript, mp3_path, youtube_link, email_l
             if match and match.group(3) and not match.group(3).startswith(("[", "{", "(")):
                 start_time = match.group(1)
                 end_time = match.group(2)
+                sentence = match.group(3).strip()
+                sentence = re.sub(r'[^，。！？!?,.%\'a-zA-Z0-9\u4e00-\u9fa5\uAC00-\uD7AF\u3040-\u30FF]', ' ', sentence)
                 if start_time == "00:00:00.000" and mp3_path:
                     hours, minutes, seconds_milliseconds = end_time.split(":")
                     seconds, milliseconds = seconds_milliseconds.split(".")
@@ -33,13 +35,12 @@ def format_subtitles_with_timestamps(transcript, mp3_path, youtube_link, email_l
                     if match_time:
                         silence_end = match_time[0].split(": ")[1]
                         silence_end = float(silence_end)
-                        hours = math.floor(silence_end // 3600)
-                        minutes = math.floor((silence_end % 3600) // 60)
-                        seconds = math.floor(silence_end % 60)
-                        milliseconds = math.floor((silence_end - math.floor(silence_end)) * 1000)
-                        start_time = f"{hours:02}:{minutes:02}:{seconds:02}.{milliseconds:03}"
-                sentence = match.group(3).strip()
-                sentence = re.sub(r'[^，。！？!?,.%\'a-zA-Z0-9\u4e00-\u9fa5\uAC00-\uD7AF\u3040-\u30FF]', ' ', sentence)
+                        if (total_seconds - silence_end) / len(sentence) > 0.05:
+                            hours = math.floor(silence_end // 3600)
+                            minutes = math.floor((silence_end % 3600) // 60)
+                            seconds = math.floor(silence_end % 60)
+                            milliseconds = math.floor((silence_end - math.floor(silence_end)) * 1000)
+                            start_time = f"{hours:02}:{minutes:02}:{seconds:02}.{milliseconds:03}"
                 # 合并一个总和的，给ai用
                 total = total + " " + sentence
                 # 如果有没完成的数据，和这一句拼起来

@@ -24,6 +24,10 @@
                 document.getElementById('mobile-pay').innerText = '支付0美元（原价2.99美元）';
                 document.getElementById('inputBox').value = (checkLanguage ? '默认男声（日文）' : '默认男声（中文）');
                 document.getElementById('soundId').value = (checkLanguage ? '3a3897e45c58491bb9b57b3213757337' : '59cb5986671546eaa6ca8ae6f29f6d22');
+                document.getElementById('resultTitle').innerText = '输出类型: ';
+                document.getElementById('resultInputBox').innerText = '生成翻译语音视频';
+                document.getElementById('0').innerText = '生成翻译语音视频';
+                document.getElementById('1').innerText = '生成翻译字幕视频';
                 document.getElementById('chineseMan').innerText = '默认男声（中文）';
                 document.getElementById('chineseWoman').innerText = '默认女声（中文）';
                 document.getElementById('japaneseMan').innerText = '默认男声（日文）';
@@ -42,6 +46,10 @@
                 document.getElementById('japaneseWoman').innerText = '支付0美元（原价2.99美元）';
                 document.getElementById('inputBox').value = (checkLanguage ? 'デフォルト男性音声（日本語）' : 'デフォルトの男性音声（中国語）');
                 document.getElementById('soundId').value = (checkLanguage ? '3a3897e45c58491bb9b57b3213757337' : '59cb5986671546eaa6ca8ae6f29f6d22');
+                document.getElementById('resultTitle').innerText = '出力タイプ: ';
+                document.getElementById('resultInputBox').innerText = '翻訳された動画音声を生成';
+                document.getElementById('0').innerText = '翻訳された動画音声を生成';
+                document.getElementById('1').innerText = '翻訳された動画字幕を生成';
                 document.getElementById('chineseMan').innerText = 'デフォルトの男性音声（中国語）';
                 document.getElementById('chineseWoman').innerText = 'デフォルトの女性の声（中国語）';
                 document.getElementById('japaneseMan').innerText = 'デフォルト男性音声（日本語）';
@@ -60,6 +68,10 @@
                 document.getElementById('japaneseWoman').innerText = '支付0美元（原价2.99美元）';
                 document.getElementById('inputBox').value = (checkLanguage ? 'Default male voice (Japanese)' : 'Default male voice (Chinese)');
                 document.getElementById('soundId').value = (checkLanguage ? '3a3897e45c58491bb9b57b3213757337' : '59cb5986671546eaa6ca8ae6f29f6d22');
+                document.getElementById('resultTitle').innerText = 'Output type: ';
+                document.getElementById('resultInputBox').innerText = 'Generate voice video';
+                document.getElementById('0').innerText = 'Generate translated voice video';
+                document.getElementById('1').innerText = 'Generate translated subtitle video';
                 document.getElementById('chineseMan').innerText = 'Default male voice (Chinese)';
                 document.getElementById('chineseWoman').innerText = 'Default female voice (Chinese)';
                 document.getElementById('japaneseMan').innerText = 'Default male voice (Japanese)';
@@ -76,7 +88,10 @@
             height: 100vh;
         }
 
-        #inputBox {
+        .inputBox {
+            display: flex;
+            align-items: center;
+            user-select: none;
             outline: none;
             cursor: pointer;
             flex: 1;
@@ -97,7 +112,7 @@
             position: absolute;
             top: 3rem;
             background: white;
-            z-index: 1;
+            z-index: 500;
         }
 
         .dropdown ul {
@@ -116,6 +131,7 @@
 
         .result-body {
             display: flex;
+            align-items: center;
         }
 
         .result-img {
@@ -174,7 +190,7 @@
 <body>
 <form id="runCode" action="/runCode" method="POST">
     <div class="result-body" style="width: 80%;">
-        <img class="result-img" id="resultImg"
+        <img onload="resize()" class="result-img" id="resultImg"
              style="border-radius: 1.25rem; object-fit: cover; object-position: center;"
              src="{{ video_thumbnail }}"/>
         <div class="result-date" style="display: flex;justify-content: space-between;flex-direction: column;">
@@ -189,7 +205,7 @@
                     <div style="display: flex;align-items: center;margin-bottom: 1rem;">
                         <div style="font-size: 1.5rem;" id="soundTitle">Sound ID:</div>
                         <div style="padding-left: 1rem;display: flex;flex: 1;position: relative;">
-                            <input id="inputBox" placeholder="输入或选择fish audio声音id..."
+                            <input class="inputBox" id="inputBox" placeholder="输入或选择fish audio声音id..."
                                    oninput="filterOptions()"
                                    onclick="filterOptions()"/>
                             <div id="dropdown" class="dropdown">
@@ -210,7 +226,20 @@
                             </div>
                         </div>
                     </div>
+                    <div style="display: flex;align-items: center;margin-bottom: 1rem;">
+                        <div style="font-size: 1.5rem;" id="resultTitle">Output type:</div>
+                        <div style="padding-left: 1rem;display: flex;flex: 1;position: relative;">
+                            <div class="inputBox" id="resultInputBox" onclick="openResultDropdown()">Generate voice video</div>
+                            <div id="resultDropdown" class="dropdown">
+                                <ul id="resultOptionsList">
+                                    <li id="0">Generate translated voice video</li>
+                                    <li id="1">Generate translated subtitle video</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                     <input type="hidden" name="soundId" id="soundId"/>
+                    <input type="hidden" name="resultType" id="resultType" value="0"/>
                     <input type="hidden" name="language" id="language"/>
 <!--                    <div style="display: flex;align-items: center;font-size: 1.5rem;">-->
 <!--                        <div id="skip">Skip the first</div>-->
@@ -279,10 +308,14 @@
 <script>
     const img = document.getElementById('resultImg');
     const dropdown = document.getElementById('dropdown');
+    const resultDropdown = document.getElementById('resultDropdown');
     const optionsList = document.getElementById('optionsList');
+    const resultOptionsList = document.getElementById('resultOptionsList');
     const emailPlaceholder = document.getElementById('email-placeholder');
     const inputBox = document.getElementById('inputBox');
+    const resultInputBox = document.getElementById('resultInputBox');
     const soundIdInput = document.getElementById('soundId');
+    const resultTypeInput = document.getElementById('resultType');
     const languageInput = document.getElementById('language');
     const pcPayButton = document.getElementById('pc-pay');
     const mobilePayButton = document.getElementById('mobile-pay');
@@ -332,9 +365,15 @@
     function resize() {
         const aspectRatio = 16 / 9;
         const width = img.clientWidth;
-        console.log(width / aspectRatio)
         img.style.height = `${width / aspectRatio}px`;
         dropdown.style.width = inputBox.getBoundingClientRect().width - 2 + 'px';
+        resultDropdown.style.width = resultInputBox.getBoundingClientRect().width - 2 + 'px';
+    }
+
+    const openResultDropdown = () => {
+        resultInputBox.style.borderRadius = "0.3125rem 0.3125rem 0 0";
+        resize();
+        resultDropdown.style.display = 'block';
     }
 
     function changeLanguage() {
@@ -437,11 +476,26 @@
         }
     });
 
+    resultOptionsList.addEventListener('click', function (event) {
+        if (event.target.tagName === 'LI') {
+            console.log(event.target.textContent)
+            resultInputBox.innerText = event.target.textContent;
+            resultTypeInput.value = event.target.id;
+            checkInput();
+            resultInputBox.style.borderRadius = "0.3125rem";
+            resultDropdown.style.display = 'none'; // 关闭下拉框
+        }
+    });
+
     // 点击输入框以外的地方关闭下拉框
     document.addEventListener('click', function (event) {
         if (!event.target.closest('#inputBox')) {
             inputBox.style.borderRadius = "0.3125rem";
             dropdown.style.display = 'none';
+        }
+        if (!event.target.closest('#resultInputBox')) {
+            resultInputBox.style.borderRadius = "0.3125rem";
+            resultDropdown.style.display = 'none';
         }
     });
 </script>

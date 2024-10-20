@@ -16,7 +16,7 @@ DOMAIN = os.getenv("DOMAIN")
 
 @celery.task
 def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", email_link="juyichen0413@gmail.com",
-         sound_id="59cb5986671546eaa6ca8ae6f29f6d22", language="zh", with_srt=0):
+         sound_id="59cb5986671546eaa6ca8ae6f29f6d22", language="zh", with_srt=0, result_type=0):
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     video_temp_dir = 'Video_temp' + timestamp
     video_downloaded_dir = 'Video_downloaded'
@@ -112,6 +112,7 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
 
             transcript = ""
             # 如果音频提取成功，移动音频文件到目标目录，并删除源文件；如果音频文件不存在，则退出程序并告知用户
+            first_audio = ""
             if audio_files:
                 last_time = 0
                 for index, audio_file in enumerate(audio_files):
@@ -252,32 +253,32 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
             translated_script_file = os.path.splitext(dst_video)[0] + f"_{language}.txt"
             with open(translated_script_file, "w") as f:
                 f.write(translated_text)
-            # 通过 chinese_audio_generation 函数生成中文音频并保存在 Video_downloaded 目录下，dst_audio 的文件名后增加 _cn + .mp3 后缀
-            output_file = os.path.splitext(dst_video)[0] + f"_{language}.mp3"
-            fix_video = chinese_audio_batch_generation_and_merge(translated_text, output_file, offset_seconds,
-                                                                 dst_video, youtube_link, email_link,
-                                                                 model_id, api_key=fish_audio_api_key)
+            output_file = ""
+            fix_video = ""
+            if result_type == 0:
+                # 通过 chinese_audio_generation 函数生成中文音频并保存在 Video_downloaded 目录下，dst_audio 的文件名后增加 _cn + .mp3 后缀
+                output_file = os.path.splitext(dst_video)[0] + f"_{language}.mp3"
+                fix_video = chinese_audio_batch_generation_and_merge(translated_text, output_file, offset_seconds,
+                                                                     dst_video, youtube_link, email_link,
+                                                                     model_id, api_key=fish_audio_api_key)
             # 判断 output_file 是否存在，如果存在则打印成功信息
-            if os.path.isfile(output_file):
-                print(f"中文音频已生成并保存为 {output_file}")
+            if result_type != 0 or os.path.isfile(output_file):
+                # print(f"中文音频已生成并保存为 {output_file}")
                 try:
                     srt_file = ""
-                    if with_srt != 0:
+                    if with_srt != 0 and result_type == 1:
                         srt_file = f"{os.path.splitext(dst_video)[0]}_srt.srt"
                         convert_to_srt(translated_text, srt_file)
-                    output_filename_list = process_video(fix_video, dst_video, output_file, offset_seconds, language,
-                                                         srt_file, with_srt)
-                    output_video_filename = output_filename_list['output_video_filename']
-                    output_srt_filename = output_filename_list['output_srt_filename']
+                    output_filename = process_video(fix_video, dst_video, output_file, offset_seconds, language,
+                                                         srt_file, with_srt, result_type)
+                    # output_video_filename = output_filename_list['output_video_filename']
+                    # output_srt_filename = output_filename_list['output_srt_filename']
                     # 将 output_filename 移到 video_generated 文件夹下，并打印最新的文件 path，另外将video_downloaded_dir文件夹中剩余的其他文件移到 video_temp_dir
-                    final_video = os.path.basename(output_video_filename)
-                    final_srt = os.path.basename(output_srt_filename)
+                    final_video = os.path.basename(output_filename)
                     final_en = os.path.basename(transcript_file)
                     final_transcript = os.path.basename(translated_script_file)
                     new_video_file = os.path.join(video_generated, final_video)
-                    shutil.move(output_video_filename, new_video_file)
-                    new_srt_file = os.path.join(video_generated, final_srt)
-                    shutil.move(output_srt_filename, new_srt_file)
+                    shutil.move(output_filename, new_video_file)
                     new_transcript_file = os.path.join(video_generated, final_en)
                     shutil.move(transcript_file, new_transcript_file)
                     new_translated_script_file = os.path.join(video_generated, final_transcript)
@@ -294,15 +295,15 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                 url = "https://code.flows.network/webhook/ruvTvWEtUoK0WyZq3w5y/send_email"
 
                 if language == "ja":
-                    trans_message = f"親愛なるユーザーの皆様，\n\n弊社の動画翻訳サービスをご利用いただき誠にありがとうございます。ビデオの翻訳が完了しました。翻訳されたビデオは以下のリンクからご覧いただけます：\n{DOMAIN}/videos/{final_video}\n\n字幕付きのオリジナル動画：\n{DOMAIN}/videos/{final_srt}\n\nオリジナル動画から認識されたテキスト：\n{DOMAIN}/videos/{final_en}\n\n翻訳されたテキスト：\n{DOMAIN}/videos/{final_transcript}\n\nご質問がある場合、またはさらにサポートが必要な場合は、お気軽にお問い合わせください。\n\nご支援に改めて感謝し、より質の高いサービスを提供できることを楽しみにしています！\n\n幸運を祈ります，\n\nSecond State チーム"
+                    trans_message = f"親愛なるユーザーの皆様，\n\n弊社の動画翻訳サービスをご利用いただき誠にありがとうございます。ビデオの翻訳が完了しました。翻訳されたビデオは以下のリンクからご覧いただけます：\n{DOMAIN}/videos/{final_video}\n\nオリジナル動画から認識されたテキスト：\n{DOMAIN}/videos/{final_en}\n\n翻訳されたテキスト：\n{DOMAIN}/videos/{final_transcript}\n\nご質問がある場合、またはさらにサポートが必要な場合は、お気軽にお問い合わせください。\n\nご支援に改めて感謝し、より質の高いサービスを提供できることを楽しみにしています！\n\n幸運を祈ります，\n\nSecond State チーム"
                 else:
-                    trans_message = f"尊敬的用户，\n\n感谢您使用我们的视频翻译服务。我们已经完成了您的视频翻译工作，您可以通过以下链接查看翻译后的视频：\n{DOMAIN}/videos/{final_video}\n\n原声加字幕的视频：\n{DOMAIN}/videos/{final_srt}\n\n原视频识别到的文字：\n{DOMAIN}/videos/{final_en}\n\n翻译后的文字：\n{DOMAIN}/videos/{final_transcript}\n\n如果您有任何疑问或需要进一步的帮助，请随时与我们联系。\n\n再次感谢您的支持，期待为您提供更多优质的服务！\n\n祝好，\n\nSecond State 团队"
+                    trans_message = f"尊敬的用户，\n\n感谢您使用我们的视频翻译服务。我们已经完成了您的视频翻译工作，您可以通过以下链接查看翻译后的视频：\n{DOMAIN}/videos/{final_video}\n\n原视频识别到的文字：\n{DOMAIN}/videos/{final_en}\n\n翻译后的文字：\n{DOMAIN}/videos/{final_transcript}\n\n如果您有任何疑问或需要进一步的帮助，请随时与我们联系。\n\n再次感谢您的支持，期待为您提供更多优质的服务！\n\n祝好，\n\nSecond State 团队"
                 data = {
                     "code": "1234",
                     "mime": "text/plain",
                     "to": email_link,
                     "subject": "您的视频翻译已完成 | Your Video Translation is Complete",
-                    "body": f"{trans_message}\n\n\nDear User,\n\nThank you for using our video translation service. We have completed the translation of your video, and you can view the translated video via the link below:\n{DOMAIN}/videos/{final_video}\n\nOriginal video with subtitles:\n{DOMAIN}/videos/{final_srt}\n\nText recognized from the original video:\n{DOMAIN}/videos/{final_en}\n\nTranslated text:\n{DOMAIN}/videos/{final_transcript}\n\nIf you have any questions or need further assistance, feel free to contact us.\n\nOnce again, thank you for your support. We look forward to serving you in the future!\n\nBest regards,\n\nSecond State Team"
+                    "body": f"{trans_message}\n\n\nDear User,\n\nThank you for using our video translation service. We have completed the translation of your video, and you can view the translated video via the link below:\n{DOMAIN}/videos/{final_video}\n\nText recognized from the original video:\n{DOMAIN}/videos/{final_en}\n\nTranslated text:\n{DOMAIN}/videos/{final_transcript}\n\nIf you have any questions or need further assistance, feel free to contact us.\n\nOnce again, thank you for your support. We look forward to serving you in the future!\n\nBest regards,\n\nSecond State Team"
                 }
 
                 # 发送 POST 请求，使用 json 参数将字典自动转换为 JSON 格式

@@ -68,11 +68,12 @@ def run_code():
     second = 0
     youtube_link = request.form.get('youtube_link')
     email_link = request.form.get('email_link')
+    result_type = int(request.form.get('resultType'))
     sound_id = request.form.get('soundId')
     language = request.form.get('language')
     with_srt = 2
 
-    main.delay(second, youtube_link, email_link, sound_id, language, with_srt)
+    main.delay(second, youtube_link, email_link, sound_id, language, with_srt, result_type)
 
     # 跳转到 thanks 页面
     return redirect(url_for('thanks'))
@@ -88,11 +89,12 @@ def run_code_by_url():
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], random_value)
     file.save(filepath)
     email_link = request.form.get('email_link')
+    result_type = int(request.form.get('resultType'))
     sound_id = request.form.get('soundId')
     language = request.form.get('language')
     with_srt = 2
 
-    main.delay(second, filepath, email_link, sound_id, language, with_srt)
+    main.delay(second, filepath, email_link, sound_id, language, with_srt, result_type)
 
     if language == "zh":
         message = "我们会将翻译好的视频发送到您的邮箱"
