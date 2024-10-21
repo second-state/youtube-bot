@@ -6,6 +6,7 @@
     <link rel="icon" type="image/x-icon" href="/icon/icon.ico" />
     <title>Video Details</title>
     <script>
+        let sex = "man"
         let trans_language = localStorage.getItem("trans_language")
         if (!trans_language) {
             trans_language = "zh"
@@ -15,67 +16,47 @@
             const userLang = navigator.language || navigator.userLanguage;
             const checkLanguage = trans_language === "ja"
             if (userLang.startsWith('zh')) {
-                document.getElementById('title').innerText = (checkLanguage ? "把英文转化为日文" : '把英文转化为中文');
-                document.getElementById('soundTitle').innerText = '声音ID: ';
-                // document.getElementById('skip').innerText = '跳过前';
-                // document.getElementById('second').innerText = '秒';
+                document.getElementById('languageInputBox').innerText = (checkLanguage ? "把英文转化为日文" : '把英文转化为中文');
+                document.getElementById('zh').innerText = '把英文转化为中文';
+                document.getElementById('ja').innerText = "把英文转化为日文";
                 document.getElementById('email-placeholder').placeholder = '在这里粘贴你的邮箱';
                 document.getElementById('pc-pay').innerText = '支付0美元（原价2.99美元）';
                 document.getElementById('mobile-pay').innerText = '支付0美元（原价2.99美元）';
-                document.getElementById('inputBox').value = (checkLanguage ? '默认男声（日文）' : '默认男声（中文）');
+                document.getElementById('inputBox').innerText = '男声';
                 document.getElementById('soundId').value = (checkLanguage ? '3a3897e45c58491bb9b57b3213757337' : '59cb5986671546eaa6ca8ae6f29f6d22');
-                document.getElementById('resultTitle').innerText = '输出类型: ';
                 document.getElementById('resultInputBox').innerText = '生成翻译语音视频';
                 document.getElementById('0').innerText = '生成翻译语音视频';
                 document.getElementById('1').innerText = '生成翻译字幕视频';
-                document.getElementById('chineseMan').innerText = '默认男声（中文）';
-                document.getElementById('chineseWoman').innerText = '默认女声（中文）';
-                document.getElementById('japaneseMan').innerText = '默认男声（日文）';
-                document.getElementById('japaneseWoman').innerText = '默认女声（日文）';
+                document.getElementById('man').innerText = '男声';
+                document.getElementById('woman').innerText = '女声';
             } else if (userLang.startsWith('ja')) {
-                document.getElementById('title').innerText = (checkLanguage ? "英語から日本語へ" : '英語から中国語へ');
-                document.getElementById('soundTitle').innerText = 'サウンドID: ';
-                // document.getElementById('skip').innerText = '最初をスキップ ';
-                // document.getElementById('second').innerText = '秒';
+                document.getElementById('languageInputBox').innerText = (checkLanguage ? "英語から日本語へ" : '英語から中国語へ');
+                document.getElementById('zh').innerText = '英語から中国語へ';
+                document.getElementById('ja').innerText = "英語から日本語へ";
                 document.getElementById('email-placeholder').placeholder = 'ここにメールアドレスを貼り付けてください';
                 document.getElementById('pc-pay').innerText = '支払い $0 (当初は $2.99)';
                 document.getElementById('mobile-pay').innerText = '支払い $0 (当初は $2.99)';
-                document.getElementById('chineseMan').innerText = '支付0美元（原价2.99美元）';
-                document.getElementById('chineseWoman').innerText = '支付0美元（原价2.99美元）';
-                document.getElementById('japaneseMan').innerText = '支付0美元（原价2.99美元）';
-                document.getElementById('japaneseWoman').innerText = '支付0美元（原价2.99美元）';
-                document.getElementById('inputBox').value = (checkLanguage ? 'デフォルト男性音声（日本語）' : 'デフォルトの男性音声（中国語）');
+                document.getElementById('inputBox').innerText = '男性音声';
                 document.getElementById('soundId').value = (checkLanguage ? '3a3897e45c58491bb9b57b3213757337' : '59cb5986671546eaa6ca8ae6f29f6d22');
-                document.getElementById('resultTitle').innerText = '出力タイプ: ';
                 document.getElementById('resultInputBox').innerText = '翻訳された動画音声を生成';
                 document.getElementById('0').innerText = '翻訳された動画音声を生成';
                 document.getElementById('1').innerText = '翻訳された動画字幕を生成';
-                document.getElementById('chineseMan').innerText = 'デフォルトの男性音声（中国語）';
-                document.getElementById('chineseWoman').innerText = 'デフォルトの女性の声（中国語）';
-                document.getElementById('japaneseMan').innerText = 'デフォルト男性音声（日本語）';
-                document.getElementById('japaneseWoman').innerText = 'デフォルトの女性の声（日本語）';
+                document.getElementById('man').innerText = '男性音声';
+                document.getElementById('woman').innerText = '女性音声';
             } else {
-                document.getElementById('title').innerText = (checkLanguage ? "English to Japanese" : 'English to Chinese');
-                document.getElementById('soundTitle').innerText = 'Sound ID: ';
-                // document.getElementById('skip').innerText = 'Skip the first ';
-                // document.getElementById('second').innerText = 'seconds';
+                document.getElementById('languageInputBox').innerText = (checkLanguage ? "English to Japanese" : 'English to Chinese');
+                document.getElementById('zh').innerText = 'English to Chinese';
+                document.getElementById('ja').innerText = "English to Japanese";
                 document.getElementById('email-placeholder').placeholder = 'Paste your email address here.';
                 document.getElementById('pc-pay').innerText = 'Pay $0 (originally $2.99)';
                 document.getElementById('mobile-pay').innerText = 'Pay $0 (originally $2.99)';
-                document.getElementById('chineseMan').innerText = '支付0美元（原价2.99美元）';
-                document.getElementById('chineseWoman').innerText = '支付0美元（原价2.99美元）';
-                document.getElementById('japaneseMan').innerText = '支付0美元（原价2.99美元）';
-                document.getElementById('japaneseWoman').innerText = '支付0美元（原价2.99美元）';
-                document.getElementById('inputBox').value = (checkLanguage ? 'Default male voice (Japanese)' : 'Default male voice (Chinese)');
+                document.getElementById('inputBox').innerText = 'Male';
                 document.getElementById('soundId').value = (checkLanguage ? '3a3897e45c58491bb9b57b3213757337' : '59cb5986671546eaa6ca8ae6f29f6d22');
-                document.getElementById('resultTitle').innerText = 'Output type: ';
                 document.getElementById('resultInputBox').innerText = 'Generate voice video';
                 document.getElementById('0').innerText = 'Generate translated voice video';
                 document.getElementById('1').innerText = 'Generate translated subtitle video';
-                document.getElementById('chineseMan').innerText = 'Default male voice (Chinese)';
-                document.getElementById('chineseWoman').innerText = 'Default female voice (Chinese)';
-                document.getElementById('japaneseMan').innerText = 'Default male voice (Japanese)';
-                document.getElementById('japaneseWoman').innerText = 'Default female voice (Japanese)';
+                document.getElementById('man').innerText = 'Male';
+                document.getElementById('woman').innerText = 'Female';
             }
         };
     </script>
@@ -90,6 +71,7 @@
 
         .inputBox {
             display: flex;
+            box-sizing: border-box;
             align-items: center;
             user-select: none;
             outline: none;
@@ -102,6 +84,14 @@
             font-size: 1rem;
             padding: 0 1rem;
             min-width: 0;
+        }
+
+        .select-icon {
+            position: absolute;
+            user-select: none;
+            height: 0.5rem;
+            top: 1.25rem;
+            right: 1rem;
         }
 
         .dropdown {
@@ -139,6 +129,8 @@
         }
 
         .result-date {
+            flex: 1;
+            height: 100%;
             margin-left: 2rem;
         }
 
@@ -194,42 +186,25 @@
              style="border-radius: 1.25rem; object-fit: cover; object-position: center;"
              src="{{ video_thumbnail }}"/>
         <div class="result-date" style="display: flex;justify-content: space-between;flex-direction: column;">
-            <div style="flex: 2;font-size: 2rem;word-break: break-all;">{{ video_name }}</div>
-            <div style="flex: 2;font-size: 1.5rem;display: flex;align-items: center;">
-                <div id="title">English to</div>
-                <img onclick="changeLanguage()" style="cursor: pointer;width: 1.5rem;margin-left: 0.5rem;"
-                     src="/icon/change.svg"/>
-            </div>
+            <div style="flex: 2;font-size: 1.5rem;word-break: break-all;">{{ video_name }}</div>
             <div class="result-select" style="flex: 3; display: flex;align-items: end;">
                 <div style="width: 100%;">
                     <div style="display: flex;align-items: center;margin-bottom: 1rem;">
-                        <div style="font-size: 1.5rem;" id="soundTitle">Sound ID:</div>
-                        <div style="padding-left: 1rem;display: flex;flex: 1;position: relative;">
-                            <input class="inputBox" id="inputBox" placeholder="输入或选择fish audio声音id..."
-                                   oninput="filterOptions()"
-                                   onclick="filterOptions()"/>
-                            <div id="dropdown" class="dropdown">
-                                <ul id="optionsList">
-                                    <li class="zh" id="chineseMan" data-value="59cb5986671546eaa6ca8ae6f29f6d22">
-                                        Default male voice (Chinese)
-                                    </li>
-                                    <li class="zh" id="chineseWoman" data-value="fe14fb17940d42fa8465741401bc309a">
-                                        Default female voice (Chinese)
-                                    </li>
-                                    <li class="ja" id="japaneseMan" data-value="3a3897e45c58491bb9b57b3213757337">
-                                        Default male voice (Japanese)
-                                    </li>
-                                    <li class="ja" id="japaneseWoman" data-value="239b4eba18af4ba29d6263235625dce3">
-                                        Default female voice (Japanese)
-                                    </li>
+                        <div style="display: flex;flex: 1;position: relative;user-select: none;">
+                            <div class="inputBox" id="languageInputBox" onclick="openLanguageDropdown()">English to Chinese</div>
+                            <img id="languageSelectIcon" class="select-icon" src="/icon/select.svg"/>
+                            <div id="languageDropdown" class="dropdown">
+                                <ul id="languageOptionsList">
+                                    <li id="zh">English to Chinese</li>
+                                    <li id="ja">English to Japanese</li>
                                 </ul>
                             </div>
                         </div>
                     </div>
                     <div style="display: flex;align-items: center;margin-bottom: 1rem;">
-                        <div style="font-size: 1.5rem;" id="resultTitle">Output type:</div>
-                        <div style="padding-left: 1rem;display: flex;flex: 1;position: relative;">
+                        <div style="display: flex;flex: 1;position: relative;user-select: none;">
                             <div class="inputBox" id="resultInputBox" onclick="openResultDropdown()">Generate voice video</div>
+                            <img id="resultSelectIcon" class="select-icon" src="/icon/select.svg"/>
                             <div id="resultDropdown" class="dropdown">
                                 <ul id="resultOptionsList">
                                     <li id="0">Generate translated voice video</li>
@@ -238,54 +213,25 @@
                             </div>
                         </div>
                     </div>
+                    <div id="selectSex" style="display: flex;align-items: center;margin-bottom: 1rem;">
+                        <div style="display: flex;flex: 1;position: relative;user-select: none;">
+                            <div class="inputBox" id="inputBox" onclick="filterOptions()"></div>
+                            <img id="sexSelectIcon" class="select-icon" src="/icon/select.svg"/>
+                            <div id="dropdown" class="dropdown">
+                                <ul id="optionsList">
+                                    <li id="man">Male</li>
+                                    <li id="woman">Female</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                     <input type="hidden" name="soundId" id="soundId"/>
                     <input type="hidden" name="resultType" id="resultType" value="0"/>
                     <input type="hidden" name="language" id="language"/>
-<!--                    <div style="display: flex;align-items: center;font-size: 1.5rem;">-->
-<!--                        <div id="skip">Skip the first</div>-->
-<!--                        <input name="second" style="width: 3rem;padding: 0.5rem 0.7rem;font-size: 1.5rem;" min="0"-->
-<!--                               value="0"-->
-<!--                               type="number"/>-->
-<!--                        <div id="second">seconds</div>-->
-<!--                    </div>-->
                 </div>
             </div>
         </div>
     </div>
-
-<!--    <div style="width: 80%;margin-top: 2rem;">-->
-<!--        <div onclick="openExtend()" style="user-select: none;cursor: pointer;display: flex;">-->
-<!--            <img style="width: 0.8rem;transform: rotate(90deg);margin-right: 0.3rem;"-->
-<!--                 src="/icon/open.svg"/>-->
-<!--            <div>扩展功能：</div>-->
-<!--        </div>-->
-<!--        <div style="user-select: none;padding-left: 1rem;margin-top: 0.5rem;display: none;" id="extend-place">-->
-<!--            <div style="display: flex;">-->
-<!--                <label style="display: flex;align-items: center;cursor: pointer;">-->
-<!--                    <input onchange="selectSrt(this.checked)" style="padding-left: 0;margin-left:0;" type="checkbox"/>-->
-<!--                    <span>为视频添加字幕</span>-->
-<!--                </label>-->
-<!--                <div style="display: flex;margin-left: 2rem;">-->
-<!--                    <div onclick="changeSrtType(this)" class="srtType" id="1"-->
-<!--                         style="cursor: pointer;padding: 0.2rem 1.5rem;border: 2px solid #8C6CE3;border-right: 1px solid #8C6CE3;background-color: #8C6CE3;color: #FFFFFF;font-weight: 500;">-->
-<!--                        软字幕-->
-<!--                    </div>-->
-<!--                    <div onclick="changeSrtType(this)" class="srtType" id="2"-->
-<!--                         style="cursor: pointer;padding: 0.2rem 1.5rem;border: 2px solid #8C6CE3;border-left: 1px solid #8C6CE3;">-->
-<!--                        硬字幕-->
-<!--                    </div>-->
-<!--                </div>-->
-<!--                <input id="withSrt" name="withSrt" value="0" type="hidden"/>-->
-<!--            </div>-->
-<!--            <div style="display:flex;align-items: center;margin-top: 0.4rem;">-->
-<!--                <img style="width: 0.9rem;"-->
-<!--                     src="/icon/info.svg"/>-->
-<!--                <div style="font-size: 0.7rem;margin-left: 0.25rem;color: #cccccc">-->
-<!--                    软字幕可以开关，硬字幕是直接烧录在视频中，无法隐藏-->
-<!--                </div>-->
-<!--            </div>-->
-<!--        </div>-->
-<!--    </div>-->
 
     <div style="position: relative;display: flex;justify-content: space-between;align-items: center;width: 80%;margin-top: 4rem;">
         <input name="youtube_link" value="{{url}}" style="display: none;"/>
@@ -308,57 +254,27 @@
 <script>
     const img = document.getElementById('resultImg');
     const dropdown = document.getElementById('dropdown');
-    const resultDropdown = document.getElementById('resultDropdown');
     const optionsList = document.getElementById('optionsList');
-    const resultOptionsList = document.getElementById('resultOptionsList');
     const emailPlaceholder = document.getElementById('email-placeholder');
     const inputBox = document.getElementById('inputBox');
-    const resultInputBox = document.getElementById('resultInputBox');
     const soundIdInput = document.getElementById('soundId');
+    const resultDropdown = document.getElementById('resultDropdown');
+    const resultInputBox = document.getElementById('resultInputBox');
+    const resultOptionsList = document.getElementById('resultOptionsList');
     const resultTypeInput = document.getElementById('resultType');
     const languageInput = document.getElementById('language');
+    const languageDropdown = document.getElementById('languageDropdown');
+    const languageInputBox = document.getElementById('languageInputBox');
+    const languageOptionsList = document.getElementById('languageOptionsList');
+    const languageSelectIcon = document.getElementById('languageSelectIcon');
+    const resultSelectIcon = document.getElementById('resultSelectIcon');
+    const sexSelectIcon = document.getElementById('sexSelectIcon');
     const pcPayButton = document.getElementById('pc-pay');
     const mobilePayButton = document.getElementById('mobile-pay');
-    // const extendPlace = document.getElementById('extend-place');
-    // const withSrtInput = document.getElementById('withSrt');
-    // const srtTypeList = document.getElementsByClassName('srtType');
 
-    let srtType = "1";
+    const selectSex = document.getElementById('selectSex');
 
     languageInput.value = trans_language;
-
-    // function openExtend() {
-    //     if (extendPlace.style.display === "none") {
-    //         console.log(extendPlace.style.display)
-    //         extendPlace.style.display = "block"
-    //     } else {
-    //         extendPlace.style.display = "none"
-    //     }
-    // }
-    //
-    // function selectSrt(isChecked) {
-    //     if(isChecked){
-    //         withSrtInput.value = srtType
-    //     }else {
-    //         withSrtInput.value = "0"
-    //     }
-    // }
-    //
-    // function changeSrtType(e) {
-    //     if (withSrtInput.value && withSrtInput.value !== "0") {
-    //         for (let i = 0; i < srtTypeList.length; i++) {
-    //             const thisE = srtTypeList[i]
-    //             if(thisE.id === e.id) {
-    //                 thisE.style.backgroundColor = "#8C6CE3"
-    //                 thisE.style.color = "#FFF"
-    //             }else {
-    //                 thisE.style.backgroundColor = "transparent"
-    //                 thisE.style.color = "#000"
-    //             }
-    //         }
-    //     }
-    //     console.log(e.id)
-    // }
 
     resize();
 
@@ -366,58 +282,23 @@
         const aspectRatio = 16 / 9;
         const width = img.clientWidth;
         img.style.height = `${width / aspectRatio}px`;
-        dropdown.style.width = inputBox.getBoundingClientRect().width - 2 + 'px';
-        resultDropdown.style.width = resultInputBox.getBoundingClientRect().width - 2 + 'px';
+        dropdown.style.width = inputBox.getBoundingClientRect().width - 1.75 + 'px';
+        resultDropdown.style.width = resultInputBox.getBoundingClientRect().width - 1.75 + 'px';
+        languageDropdown.style.width = languageInputBox.getBoundingClientRect().width - 1.75 + 'px';
     }
 
-    const openResultDropdown = () => {
-        resultInputBox.style.borderRadius = "0.3125rem 0.3125rem 0 0";
+    const openLanguageDropdown = () => {
+        const inputValue = languageInputBox.innerText;
+        const options = languageOptionsList.getElementsByTagName('li');
+
+        languageInputBox.style.borderRadius = "0.3125rem 0.3125rem 0 0";
+        languageInputBox.style.borderBottom = "0";
+        languageSelectIcon.style.transform = "rotate(-90deg)";
         resize();
-        resultDropdown.style.display = 'block';
-    }
-
-    function changeLanguage() {
-        if (trans_language === "zh") {
-            trans_language = "ja"
-        } else {
-            trans_language = "zh"
-        }
-        localStorage.setItem("trans_language", trans_language)
-        languageInput.value = trans_language;
-        const userLang = navigator.language || navigator.userLanguage;
-        if (userLang.startsWith('zh')) {
-            document.getElementById('title').innerText = (trans_language === "ja" ? "把英文转化为日文" : '把英文转化为中文');
-            document.getElementById('inputBox').value = (trans_language === "ja" ? '默认男声（日文）' : '默认男声（中文）');
-        } else if (userLang.startsWith('ja')) {
-            document.getElementById('title').innerText = (trans_language === "ja" ? "英語から日本語へ" : '英語から中国語へ');
-            document.getElementById('inputBox').value = (trans_language === "ja" ? 'デフォルト男性音声（日本語）' : 'デフォルトの男性音声（中国語）');
-        } else {
-            document.getElementById('title').innerText = (trans_language === "ja" ? "English to Japanese" : 'English to Chinese');
-            document.getElementById('inputBox').value = (trans_language === "ja" ? 'Default male voice (Japanese)' : 'Default male voice (Chinese)');
-        }
-        filterOptions()
-    }
-
-    function filterOptions() {
-        const inputValue = inputBox.value;
-        const options = optionsList.getElementsByTagName('li');
-        let setValue = inputValue
-
-        inputBox.style.borderRadius = "0.3125rem 0.3125rem 0 0";
-
-        resize();
-
-        // 显示所有选项
-        dropdown.style.display = 'block';
+        languageDropdown.style.display = 'block';
 
         for (let option of options) {
-            if (option.className.indexOf(trans_language) !== -1) {
-                option.style.display = "block"
-            } else {
-                option.style.display = "none"
-            }
             if (option.textContent === inputValue) {
-                setValue = option.getAttribute('data-value')
                 option.style.color = '#a1a1a1';
                 option.style.cursor = 'not-allowed';
             } else {
@@ -425,9 +306,47 @@
                 option.style.cursor = 'pointer';
             }
         }
-        if (setValue) {
-            soundIdInput.value = setValue;
-            checkInput();
+    }
+
+    const openResultDropdown = () => {
+        const inputValue = resultInputBox.innerText;
+        const options = resultOptionsList.getElementsByTagName('li');
+
+        resultInputBox.style.borderRadius = "0.3125rem 0.3125rem 0 0";
+        resultInputBox.style.borderBottom = "0";
+        resultSelectIcon.style.transform = "rotate(-90deg)";
+        resize();
+        resultDropdown.style.display = 'block';
+
+        for (let option of options) {
+            if (option.textContent === inputValue) {
+                option.style.color = '#a1a1a1';
+                option.style.cursor = 'not-allowed';
+            } else {
+                option.style.color = '#000000';
+                option.style.cursor = 'pointer';
+            }
+        }
+    }
+
+    function filterOptions() {
+        const inputValue = inputBox.innerText;
+        const options = optionsList.getElementsByTagName('li');
+
+        inputBox.style.borderRadius = "0.3125rem 0.3125rem 0 0";
+        inputBox.style.borderBottom = "0";
+        sexSelectIcon.style.transform = "rotate(-90deg)";
+        resize();
+        dropdown.style.display = 'block';
+
+        for (let option of options) {
+            if (option.textContent === inputValue) {
+                option.style.color = '#a1a1a1';
+                option.style.cursor = 'not-allowed';
+            } else {
+                option.style.color = '#000000';
+                option.style.cursor = 'pointer';
+            }
         }
     }
 
@@ -436,9 +355,6 @@
         let check = true;
         const reg = /^[0-9a-zA-Z_.-]+[@][0-9a-zA-Z_.-]+([.][a-zA-Z]+){1,2}$/;
         if (!emailPlaceholder.value || !reg.test(emailPlaceholder.value)) {
-            check = false;
-        }
-        if (!soundIdInput.value || soundIdInput.value.length !== 32) {
             check = false;
         }
         if (check) {
@@ -465,25 +381,58 @@
 
     emailPlaceholder.addEventListener('input', checkInput)
 
-    // 选择选项时
+    const ids = {
+        man: {
+            zh: "59cb5986671546eaa6ca8ae6f29f6d22",
+            ja: "3a3897e45c58491bb9b57b3213757337"
+        },
+        woman: {
+            zh: "fe14fb17940d42fa8465741401bc309a",
+            ja: "239b4eba18af4ba29d6263235625dce3"
+        }
+    }
+
+    languageOptionsList.addEventListener('click', function (event) {
+        if (event.target.tagName === 'LI') {
+            languageInputBox.innerText = event.target.textContent;
+            trans_language = event.target.id;
+            languageInput.value = trans_language;
+            soundIdInput.value = ids[sex][trans_language];
+            checkInput();
+            languageInputBox.style.borderRadius = "0.3125rem";
+            languageInputBox.style.border = "1px solid #8C6CE3";
+            languageDropdown.style.display = 'none'; // 关闭下拉框
+            languageSelectIcon.style.transform = "rotate(0deg)";
+        }
+    });
+
     optionsList.addEventListener('click', function (event) {
         if (event.target.tagName === 'LI') {
-            inputBox.value = event.target.textContent;
-            soundIdInput.value = event.target.getAttribute('data-value');
+            inputBox.innerText = event.target.textContent;
+            sex = event.target.id;
+            soundIdInput.value = ids[sex][trans_language];
             checkInput();
             inputBox.style.borderRadius = "0.3125rem";
+            inputBox.style.border = "1px solid #8C6CE3";
             dropdown.style.display = 'none'; // 关闭下拉框
+            sexSelectIcon.style.transform = "rotate(0deg)";
         }
     });
 
     resultOptionsList.addEventListener('click', function (event) {
         if (event.target.tagName === 'LI') {
-            console.log(event.target.textContent)
             resultInputBox.innerText = event.target.textContent;
             resultTypeInput.value = event.target.id;
+            if(event.target.id === "1") {
+                selectSex.style.visibility = "hidden";
+            }else {
+                selectSex.style.visibility = "visible";
+            }
             checkInput();
             resultInputBox.style.borderRadius = "0.3125rem";
+            resultInputBox.style.border = "1px solid #8C6CE3";
             resultDropdown.style.display = 'none'; // 关闭下拉框
+            resultSelectIcon.style.transform = "rotate(0deg)";
         }
     });
 
@@ -491,11 +440,21 @@
     document.addEventListener('click', function (event) {
         if (!event.target.closest('#inputBox')) {
             inputBox.style.borderRadius = "0.3125rem";
+            inputBox.style.border = "1px solid #8C6CE3";
             dropdown.style.display = 'none';
+            sexSelectIcon.style.transform = "rotate(0deg)";
         }
         if (!event.target.closest('#resultInputBox')) {
             resultInputBox.style.borderRadius = "0.3125rem";
+            resultInputBox.style.border = "1px solid #8C6CE3";
             resultDropdown.style.display = 'none';
+            resultSelectIcon.style.transform = "rotate(0deg)";
+        }
+        if (!event.target.closest('#languageInputBox')) {
+            languageInputBox.style.borderRadius = "0.3125rem";
+            languageInputBox.style.border = "1px solid #8C6CE3";
+            languageDropdown.style.display = 'none';
+            languageSelectIcon.style.transform = "rotate(0deg)";
         }
     });
 </script>

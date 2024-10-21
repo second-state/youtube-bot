@@ -166,7 +166,7 @@ def process_video(mp4_path, original_mp4_path, mp3_path, offset_seconds=5, langu
 
         command = [
             "ffmpeg", "-y", "-i", original_mp4_path,
-            "-vf", f"subtitles={srt_file}:force_style='FontName={font_name},Alignment=2,MaxLineLength=30'", output_video_filename
+            "-vf", f"subtitles={srt_file}:force_style='FontName={font_name},Alignment=2'", output_video_filename
         ]
     else:
     # Step 3: Get durations

@@ -72,7 +72,8 @@ def run_code():
     sound_id = request.form.get('soundId')
     language = request.form.get('language')
     with_srt = 2
-
+    # thread = threading.Thread(target=main, args=(second, youtube_link, email_link, sound_id, language, with_srt, result_type))
+    # thread.start()
     main.delay(second, youtube_link, email_link, sound_id, language, with_srt, result_type)
 
     # 跳转到 thanks 页面

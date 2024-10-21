@@ -111,8 +111,29 @@ def convert_milliseconds_to_time_format(milliseconds):
     # 格式化成 HH:MM:SS,xxx
     return f"{int(hours):02}:{int(minutes):02}:{int(seconds):02},{int(milliseconds):03}"
 
-def convert_to_srt(input_text, output_file="subtitles.srt"):
+def convert_to_srt(input_text, output_file, video_file):
     pattern = r"\[(\d{2}:\d{2}:\d{2}\.\d{3}) --> (\d{2}:\d{2}:\d{2}\.\d{3})\]  (.+)"
+
+    max_length = 35
+    add_length = 30
+
+    ffprobe_command = [
+        'ffprobe', '-v', 'error', '-select_streams', 'v:0',
+        '-show_entries', 'stream=width,height', '-of', 'csv=s=x:p=0', video_file
+    ]
+
+    # Run the command using subprocess and capture the output
+    result = subprocess.run(ffprobe_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+    if result.returncode == 0:
+        # Successfully executed the command, parse the output
+        resolution = result.stdout.strip()
+        width, height = map(int, resolution.split('x'))
+        max_length = int(35 * 9 / 16 * height // width)
+        add_length = int(max_length * 6 // 7)
+    else:
+        # There was an error executing the command
+        print(f"Error: {result.stderr}")
 
     with open(output_file, "w", encoding="utf-8") as f:
         matches = re.findall(pattern, input_text)
@@ -133,14 +154,13 @@ def convert_to_srt(input_text, output_file="subtitles.srt"):
 
             duration_milliseconds = end_time_milliseconds - start_time_milliseconds
 
-            # 如果文本长度大于50，进行分段处理
-            if len(text) > 35:
+            if len(text) > max_length:
                 segments = []
                 start_index = 0
                 segment_duration = duration_milliseconds / len(text)
 
                 while start_index < len(text):
-                    segment = text[start_index:start_index + 30]
+                    segment = text[start_index:start_index + add_length]
 
                     last_comma = segment.rfind('，')
                     last_period = segment.rfind('。')
