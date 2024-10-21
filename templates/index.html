@@ -99,8 +99,8 @@
 <h1 style="color: #FFFAFA;" id="example">Examples</h1>
 
 <div style="width: 100%;display: flex;justify-content: space-around;">
-    <img id="Hf9zfjflP_0" style="width: 25%;border-radius: 1.25rem; cursor: pointer;"
-         src="https://i.ytimg.com/vi/Hf9zfjflP_0/hqdefault.jpg?sqp=-oaymwEcCNACELwBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLDilWpi3P9e35xnZTDG_paq3AcsBw"/>
+    <img onclick="window.open('https://video-translator.gaianet.ai/videos/Geoffrey_Hinton_On_working_with_Ilya_choosing_problems_and_the_power_of_intuition_zh.mp4')" id="Hf9zfjflP_0" style="width: 25%;border-radius: 1.25rem; cursor: pointer;"
+         src="https://i.ytimg.com/vi/n4IQOBka8bc/hq720.jpg"/>
     <img id="Oa0ZHfcalCM" style="width: 25%;border-radius: 1.25rem; cursor: pointer;"
          src="https://i.ytimg.com/vi/Oa0ZHfcalCM/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLAfO7qkyPUEyJ19Z6_2wzU-iCCAkw"/>
     <img id="CpXlvLOyBVI" style="width: 25%;border-radius: 1.25rem; cursor: pointer;"
@@ -108,6 +108,22 @@
 </div>
 </body>
 <script>
+
+    function formatFileName(fileName) {
+        const parts = fileName.split('.');
+        if (parts.length < 2) {
+            return fileName;  // 如果没有后缀，返回原文件名
+        }
+
+        const name = parts.slice(0, -1).join('.');  // 文件名部分
+        const extension = parts[parts.length - 1];  // 后缀部分
+
+        if (name.length > 6) {
+            return name.slice(0, 3) + '...' + name.slice(-3) + '.' + extension;
+        }
+
+        return fileName;  // 如果文件名很短，不进行截取
+    }
 
     function handleSubmit() {
         const fileInput = document.getElementById('file-input');
@@ -124,21 +140,21 @@
         let errorText = ""
         if (userLang.startsWith('zh')) {
             alertText = `文件大小超过 ${maxSizeMB}MB， 请上传较小的文件！`;
-            uploadText = `正在上传 ${file.name}`;
+            uploadText = `正在上传 ${formatFileName(file.name)}`;
             uploadErrorText = `上传失败，请重新上传！`;
             networkErrorText = `发生网络错误，请重新上传！`;
             errorText = `错误`;
 
         }else if(userLang.startsWith('ja')) {
             alertText = `ファイルサイズは ${maxSizeMB}MB を超えています。より小さいファイルをアップロードしてください！`;
-            uploadText = `${file.name} をアップロードしています`;
+            uploadText = `${formatFileName(file.name)} をアップロードしています`;
             uploadErrorText = `アップロードに失敗しました。再度アップロードしてください！`;
             networkErrorText = `ネットワークエラーが発生しました。再度アップロードしてください！`;
             errorText = `エラー`;
 
         }else {
             alertText = `The file size exceeds ${maxSizeMB}MB. Please upload a smaller file!`;
-            uploadText = `Uploaded ${file.name}`;
+            uploadText = `Uploaded ${formatFileName(file.name)}`;
             uploadErrorText = `Upload failed, please upload again!`;
             networkErrorText = `Network error occurred, please upload again!`;
             errorText = `Network error occurred, please upload again!`;
