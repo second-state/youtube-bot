@@ -11,8 +11,7 @@ def split_audio(audio_file: str, target_duration: int = 60, window: int = 60):
 
     # Use moviepy to get audio duration
     with AudioFileClip(audio_file) as audio:
-        duration = audio.duration
-
+        duration = round(audio.duration, 2)
     segments = []
     start = 0
     while start < duration:
