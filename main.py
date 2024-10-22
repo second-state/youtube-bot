@@ -181,7 +181,7 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                         sentence = match.group(3).strip()
                         if language == 'ja':
                             system_prompt_script_translator = system_prompt_script_translator_japanese
-                            transcript_pattern = r'[^\u3040-\u309f\u30a0-\u30ff\u4e00-\u9fff\u3000-\u303f\uff00-\uffef0-9\.\+\-\*/=%\u00B1\u2212\u221A\s]+'
+                            transcript_pattern = r'[^\u3040-\u309f\u30a0-\u30ff\u3000-\u303f\uff00-\uffef0-9\.\+\-\*/=%\u00B1\u2212\u221A\s]+'
                         else:
                             system_prompt_script_translator = system_prompt_script_translator_chinese
                             transcript_pattern = r'[^\u4e00-\u9fff\u3000-\u303f\uff00-\uffef0-9\.\+\-\*/=%\u00B1\u2212\u221A\s]+'
