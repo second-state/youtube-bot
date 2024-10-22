@@ -5,6 +5,7 @@ import subprocess
 import time
 from datetime import datetime, timedelta
 from moviepy.editor import AudioFileClip
+
 from celery_local import celery
 from format_timestamps import *
 from voice_generate import *
@@ -12,6 +13,27 @@ from voice_generate import *
 load_dotenv()
 
 DOMAIN = os.getenv("DOMAIN")
+
+
+def check_invalid(transcript_pattern, sentence_translation, all_words):
+    non_trans_words = re.findall(transcript_pattern, sentence_translation)
+    non_trans_words = [word.lower() for word in non_trans_words if word.strip()]
+    invalid_words = [item for item in non_trans_words if item not in all_words]
+    if invalid_words:
+        unique_invalid_words = set(invalid_words)
+        existing_words = set()
+        try:
+            with open('invalid_characters.txt', 'r', encoding='utf-8') as file:
+                existing_words = set(file.read().splitlines())
+        except FileNotFoundError:
+            pass
+        new_invalid_words = unique_invalid_words - existing_words
+        if new_invalid_words:
+            with open('invalid_characters.txt', 'a', encoding='utf-8') as file:
+                for word in new_invalid_words:
+                    file.write(f"{word}\n")  # 每个非法字符一行
+        print(f"发现了非法字符：{invalid_words}")
+        return {"invalid_words": invalid_words, "non_trans_words": non_trans_words}
 
 
 @celery.task
@@ -181,7 +203,7 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                         sentence = match.group(3).strip()
                         if language == 'ja':
                             system_prompt_script_translator = system_prompt_script_translator_japanese
-                            transcript_pattern = r'[^\u3040-\u309f\u30a0-\u30ff\u3000-\u303f\uff00-\uffef0-9\.\+\-\*/=%\u00B1\u2212\u221A\s]+'
+                            transcript_pattern = r'[^\u3040-\u309f\u30a0-\u30ff\u4e00-\u9fff\u3000-\u303f\uff00-\uffef0-9\.\+\-\*/=%\u00B1\u2212\u221A\s]+'
                         else:
                             system_prompt_script_translator = system_prompt_script_translator_chinese
                             transcript_pattern = r'[^\u4e00-\u9fff\u3000-\u303f\uff00-\uffef0-9\.\+\-\*/=%\u00B1\u2212\u221A\s]+'
@@ -212,23 +234,9 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                                 this_sentence = sentence_translation
                                 this_system_prompt_script_translator = system_prompt_script_translator_again
                             attempts += 1
-                            non_trans_words = re.findall(transcript_pattern, sentence_translation)
-                            non_trans_words = [word.lower() for word in non_trans_words if word.strip()]
-                            invalid_words = [item for item in non_trans_words if item not in all_words]
-                            if invalid_words:
-                                unique_invalid_words = set(invalid_words)
-                                existing_words = set()
-                                try:
-                                    with open('invalid_characters.txt', 'r', encoding='utf-8') as file:
-                                        existing_words = set(file.read().splitlines())
-                                except FileNotFoundError:
-                                    pass
-                                new_invalid_words = unique_invalid_words - existing_words
-                                if new_invalid_words:
-                                    with open('invalid_characters.txt', 'a', encoding='utf-8') as file:
-                                        for word in new_invalid_words:
-                                            file.write(f"{word}\n")  # 每个非法字符一行
-                                print(f"发现了非法字符：{invalid_words}")
+                            check_result = check_invalid(transcript_pattern, sentence_translation, all_words)
+                            invalid_words = check_result["invalid_words"]
+                            non_trans_words = check_result["non_trans_words"]
                             if (len(invalid_words) > 0 and len(non_trans_words) >= 4) or bool(re.search(r'（.*?）', sentence_translation)) or sentence_translation.startswith("'") or sentence_translation.startswith('"'):
                                 time.sleep(3)
                                 new_translation = openai_gpt_chat(
@@ -237,7 +245,11 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                                 new_translation = new_translation.replace('\n', '')
                                 if new_translation == sentence_translation:
                                     break
-                                sentence_translation = new_translation
+                                new_check_result = check_invalid(transcript_pattern, new_translation, all_words)
+                                new_invalid_words = new_check_result["invalid_words"]
+                                if len(invalid_words) > len(new_invalid_words):
+                                    sentence_translation = new_translation
+                                    break
                             else:
                                 break
                         print(sentence_translation)
@@ -270,7 +282,7 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                         srt_file = f"{os.path.splitext(dst_video)[0]}_srt.srt"
                         convert_to_srt(translated_text, srt_file, dst_video)
                     output_filename = process_video(fix_video, dst_video, output_file, offset_seconds, language,
-                                                         srt_file, with_srt, result_type)
+                                                    srt_file, with_srt, result_type)
                     # output_video_filename = output_filename_list['output_video_filename']
                     # output_srt_filename = output_filename_list['output_srt_filename']
                     # 将 output_filename 移到 video_generated 文件夹下，并打印最新的文件 path，另外将video_downloaded_dir文件夹中剩余的其他文件移到 video_temp_dir
