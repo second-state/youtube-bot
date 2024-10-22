@@ -245,11 +245,12 @@ def main(second=0, youtube_link="https://www.youtube.com/watch?v=Hf9zfjflP_0", e
                                 new_translation = new_translation.replace('\n', '')
                                 if new_translation == sentence_translation:
                                     break
-                                new_check_result = check_invalid(transcript_pattern, new_translation, all_words)
-                                new_invalid_words = new_check_result["invalid_words"]
-                                if len(invalid_words) > len(new_invalid_words):
-                                    sentence_translation = new_translation
-                                    break
+                                if new_translation:
+                                    new_check_result = check_invalid(transcript_pattern, new_translation, all_words)
+                                    new_invalid_words = new_check_result["invalid_words"]
+                                    if len(invalid_words) >= len(new_invalid_words):
+                                        sentence_translation = new_translation
+                                        break
                             else:
                                 break
                         print(sentence_translation)
