@@ -33,7 +33,7 @@ def check_invalid(transcript_pattern, sentence_translation, all_words):
                 for word in new_invalid_words:
                     file.write(f"{word}\n")  # 每个非法字符一行
         print(f"发现了非法字符：{invalid_words}")
-        return {"invalid_words": invalid_words, "non_trans_words": non_trans_words}
+    return {"invalid_words": invalid_words, "non_trans_words": non_trans_words}
 
 
 @celery.task
