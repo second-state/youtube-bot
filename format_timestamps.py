@@ -1,6 +1,7 @@
 import re
 import math
 import subprocess
+from gpt_function import system_prompt_check_sentence, gaia_gpt_chat
 from datetime import datetime, timedelta
 from send_error import *
 
@@ -28,7 +29,7 @@ def format_subtitles_with_timestamps(transcript, mp3_path, youtube_link, email_l
                     total_seconds = int(hours) * 3600 + int(minutes) * 60 + int(seconds) + int(milliseconds) / 1000
                     ffmpeg_cmd = [
                         'ffmpeg', '-t', str(total_seconds), '-i', mp3_path,
-                        '-af', 'silencedetect=noise=-30dB:d=0.5', '-f', 'null', '-'
+                        '-af', 'silencedetect=noise=-30dB:d=1', '-f', 'null', '-'
                     ]
                     output = subprocess.run(ffmpeg_cmd, capture_output=True, text=True).stderr
                     match_time = re.search(r'silence_end: ([\d\.]+)', output)
@@ -45,8 +46,10 @@ def format_subtitles_with_timestamps(transcript, mp3_path, youtube_link, email_l
                 total = total + " " + sentence
                 # 如果有没完成的数据，和这一句拼起来
                 if temp_sentence:
-                    if sentence and sentence[0].isupper():
-                        final_transcript.append(f"[{last_end} --> {start_time}]  {re.sub(s_pattern, ' ', temp_sentence)}")
+                    if sentence and sentence[0].isupper() and not temp_sentence.endswith(','):
+                        check_sentence = gaia_gpt_chat(system_prompt_check_sentence, temp_sentence, youtube_link, email_link, 1)
+                        if check_sentence == "yes":
+                            final_transcript.append(f"[{last_end} --> {start_time}]  {re.sub(s_pattern, ' ', temp_sentence)}")
                     else:
                         if last_end:
                             start_time = last_end
@@ -64,7 +67,7 @@ def format_subtitles_with_timestamps(transcript, mp3_path, youtube_link, email_l
                     time_difference = end_timestamps - start_timestamps
                     # 计算语速
                     total_text_length = len(sentence)
-                    split_text_list = sentence.split('.')
+                    split_text_list = sentence.split('. ')
                     for idx, item in enumerate(split_text_list):
                         item = item.strip()
                         if idx + 1 != len(split_text_list):

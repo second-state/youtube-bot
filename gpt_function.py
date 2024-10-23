@@ -11,6 +11,7 @@ load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 system_prompt_script_translator_chinese = os.getenv("SYSTEM_PROMPT_SCRIPT_TRANSLATOR_CHINESE")
 system_prompt_script_translator_japanese = os.getenv("SYSTEM_PROMPT_SCRIPT_TRANSLATOR_JAPANESE")
+system_prompt_check_sentence = os.getenv("SYSTEM_PROMPT_CHECK_SENTENCE")
 system_prompt_summarizer = os.getenv("SYSTEM_PROMPT_SUMMARIZER")
 
 
@@ -29,7 +30,8 @@ def openai_gpt_chat(system_prompt, prompt, youtube_link, email_link):
         print("Error in getting the response.")
         return gaia_gpt_chat(system_prompt, prompt, youtube_link, email_link)
 
-def gaia_gpt_chat(system_prompt, prompt, youtube_link, email_link):
+
+def gaia_gpt_chat(system_prompt, prompt, youtube_link, email_link, pass_num=0):
     node_list = ['qwen72b', 'llama', 'phi', 'gemma']
 
     payload = json.dumps({
@@ -51,6 +53,8 @@ def gaia_gpt_chat(system_prompt, prompt, youtube_link, email_link):
 
     max_retries = 8
     attempt = 0
+    if pass_num and pass_num < 4:
+        attempt = pass_num * 2
 
     while attempt < max_retries:
         num = attempt // 2
@@ -84,6 +88,7 @@ def gaia_gpt_chat(system_prompt, prompt, youtube_link, email_link):
     # except:
     #     print("Error in getting the response.")
     #     return
+
 
 def get_transcript(audio_file_path):
     print(f"正在通过音频文件转录英文脚本")
@@ -141,12 +146,11 @@ def group_words_into_sentences(transcript, max_words=10, max_silence=1.0):
             sentences.append(current_sentence)
     return sentences
 
-
 # if __name__ == "__main__":
-    # 测试 openai_gpt_chat
-    # transcript_file_path = 'transcript_sample.json'
-    # transcript = load_transcript(transcript_file_path)
-    # sentences = group_words_into_sentences(transcript)
-    # # save sentences as json file
-    # with open('sentences_sample.json', 'w') as f:
-    #     json.dump(sentences, f)
+# 测试 openai_gpt_chat
+# transcript_file_path = 'transcript_sample.json'
+# transcript = load_transcript(transcript_file_path)
+# sentences = group_words_into_sentences(transcript)
+# # save sentences as json file
+# with open('sentences_sample.json', 'w') as f:
+#     json.dump(sentences, f)
